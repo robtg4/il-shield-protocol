@@ -2,8 +2,8 @@
 
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { mainnet, sepolia } from "wagmi/chains";
+import { injected, walletConnect } from "wagmi/connectors";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ConnectKitProvider, getDefaultConfig } from "connectkit";
 import { type Chain } from "viem";
 import { type ReactNode, useState } from "react";
 
@@ -20,28 +20,31 @@ const unichainSepolia: Chain = {
   testnet: true,
 };
 
-const config = createConfig(
-  getDefaultConfig({
-    chains: [unichainSepolia, sepolia, mainnet],
-    transports: {
-      [unichainSepolia.id]: http(),
-      [sepolia.id]: http(),
-      [mainnet.id]: http(),
-    },
-    walletConnectProjectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID || "",
-    appName: "IL Shield",
-    appDescription: "Impermanent Loss Protection for Uniswap v4",
-  })
-);
+const wcProjectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID || "";
+
+const config = createConfig({
+  chains: [unichainSepolia, sepolia, mainnet],
+  connectors: [
+    injected(),
+    ...(wcProjectId
+      ? [walletConnect({ projectId: wcProjectId })]
+      : []),
+  ],
+  transports: {
+    [unichainSepolia.id]: http(),
+    [sepolia.id]: http(),
+    [mainnet.id]: http(),
+  },
+});
+
+export { config };
 
 export function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
 
   return (
     <WagmiProvider config={config}>
-      <QueryClientProvider client={queryClient}>
-        <ConnectKitProvider theme="midnight">{children}</ConnectKitProvider>
-      </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </WagmiProvider>
   );
 }

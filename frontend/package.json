@@ -16,6 +16,9 @@
     "viem": "^2.47.6",
     "wagmi": "^3.6.0"
   },
+  "engines": {
+    "node": ">=20"
+  },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",

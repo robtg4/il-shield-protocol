@@ -25,3 +25,7 @@ arbitrum = "${ARBITRUM_RPC_URL}"
 base = "${BASE_RPC_URL}"
 unichain = "${UNICHAIN_RPC_URL}"
 unichain_sepolia = "${UNICHAIN_SEPOLIA_RPC_URL}"
+
+[etherscan]
+unichain_sepolia = { key = "${BLOCKSCOUT_API_KEY_UNICHAIN}", url = "https://unichain-sepolia.blockscout.com/api/", chain = 1301 }
+sepolia = { key = "${ETHERSCAN_API_KEY}" }

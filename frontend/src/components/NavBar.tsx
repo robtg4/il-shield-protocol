@@ -1,6 +1,6 @@
 "use client";
 
-import { ConnectKitButton } from "connectkit";
+import { useAccount, useConnect, useDisconnect } from "wagmi";
 
 function ShieldIcon({ size = 16 }: { size?: number }) {
   return (
@@ -11,6 +11,36 @@ function ShieldIcon({ size = 16 }: { size?: number }) {
 }
 
 const navLinks = ["Trade", "Explore", "Pool", "Protect"];
+
+function ConnectButton() {
+  const { address, isConnected } = useAccount();
+  const { connect, connectors } = useConnect();
+  const { disconnect } = useDisconnect();
+
+  if (isConnected && address) {
+    const truncated = `${address.slice(0, 6)}...${address.slice(-4)}`;
+    return (
+      <button
+        onClick={() => disconnect()}
+        className="rounded-[20px] border border-card-border bg-card px-4 py-2 text-sm font-semibold text-text1 transition-colors hover:bg-input"
+      >
+        {truncated}
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={() => {
+        const connector = connectors[0];
+        if (connector) connect({ connector });
+      }}
+      className="rounded-[20px] bg-pink px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+    >
+      Connect
+    </button>
+  );
+}
 
 export function NavBar() {
   return (
@@ -61,20 +91,7 @@ export function NavBar() {
           <button className="hidden rounded-xl border border-card-border p-2 text-text2 sm:block">
             ···
           </button>
-          <ConnectKitButton.Custom>
-            {({ isConnected, show, truncatedAddress }) => (
-              <button
-                onClick={show}
-                className={`rounded-[20px] px-4 py-2 text-sm font-semibold transition-colors ${
-                  isConnected
-                    ? "border border-card-border bg-card text-text1"
-                    : "bg-pink text-white"
-                }`}
-              >
-                {isConnected ? truncatedAddress : "Connect"}
-              </button>
-            )}
-          </ConnectKitButton.Custom>
+          <ConnectButton />
         </div>
       </div>
     </nav>

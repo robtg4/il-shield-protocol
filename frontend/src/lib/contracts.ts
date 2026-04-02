@@ -1,11 +1,11 @@
-// Contract addresses — update after deployment
+// Contract addresses — Unichain Sepolia deployment (2026-04-02)
 export const ADDRESSES = {
-  ILShieldCore: "0x0000000000000000000000000000000000000000" as `0x${string}`,
-  SeniorVault: "0x0000000000000000000000000000000000000000" as `0x${string}`,
-  JuniorVault: "0x0000000000000000000000000000000000000000" as `0x${string}`,
-  ILPNRegistry: "0x0000000000000000000000000000000000000000" as `0x${string}`,
-  PricingOracle: "0x0000000000000000000000000000000000000000" as `0x${string}`,
-  USDC: "0x0000000000000000000000000000000000000000" as `0x${string}`,
+  ILShieldCore: "0x5CbE5E8Dce54091f9e19A986f49289b4f29771d1" as `0x${string}`,
+  SeniorVault: "0xBC021bA9301F1c62AE0Aa51aC6cdee5C85861d0B" as `0x${string}`,
+  JuniorVault: "0x56343693d78a4FcE2c882c8ad86D81127C7F46cf" as `0x${string}`,
+  ILPNRegistry: "0x4C94377DdDCeFa10d0c2473B92f7dC9E2f5e8b7f" as `0x${string}`,
+  PricingOracle: "0x7D9E7B8cFa3D3607a73EFd880888da1eBB19CAee" as `0x${string}`,
+  USDC: "0x31d0220469e10c4E71834a79b1f276d740d3768F" as `0x${string}`,
 } as const;
 
 export const ERC20_ABI = [

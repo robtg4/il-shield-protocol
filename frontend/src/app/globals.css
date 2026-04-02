@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #131313;
+  --card: #1B1B1B;
+  --input: #232323;
+  --input-hover: #2C2C2C;
+  --card-border: #ffffff0f;
+  --text1: #FFFFFF;
+  --text2: #9B9B9B;
+  --text3: #5E5E5E;
+  --pink: #FC72FF;
+  --pink-cta: #311C31;
+  --pink-cta-text: #FC72FF;
+  --pink-dim: #FC72FF20;
+  --green: #40B66B;
+  --green-dim: #40B66B1a;
+  --red: #FF5F52;
+  --red-dim: #FF5F521a;
+  --amber: #EEB317;
+  --amber-dim: #EEB3171a;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-card: var(--card);
+  --color-input: var(--input);
+  --color-input-hover: var(--input-hover);
+  --color-card-border: var(--card-border);
+  --color-text1: var(--text1);
+  --color-text2: var(--text2);
+  --color-text3: var(--text3);
+  --color-pink: var(--pink);
+  --color-pink-cta: var(--pink-cta);
+  --color-pink-cta-text: var(--pink-cta-text);
+  --color-pink-dim: var(--pink-dim);
+  --color-green: var(--green);
+  --color-green-dim: var(--green-dim);
+  --color-red: var(--red);
+  --color-red-dim: var(--red-dim);
+  --color-amber: var(--amber);
+  --color-amber-dim: var(--amber-dim);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text1);
+  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type="number"] {
+  -moz-appearance: textfield;
+}

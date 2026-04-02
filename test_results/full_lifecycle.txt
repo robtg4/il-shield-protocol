@@ -1,0 +1,7 @@
+No files changed, compilation skipped
+
+Ran 1 test for test/integration/FullLifecycle.t.sol:FullLifecycleTest
+[PASS] test_fullLifecycle() (gas: 513576)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 2.88ms (689.60µs CPU time)
+
+Ran 1 test suite in 20.28ms (2.88ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)

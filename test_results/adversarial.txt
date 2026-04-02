@@ -1,0 +1,11 @@
+No files changed, compilation skipped
+
+Ran 5 tests for test/integration/Adversarial.t.sol:AdversarialTest
+[PASS] test_cancelThenSettle_reverts() (gas: 354149)
+[PASS] test_doubleClaim_reverts() (gas: 379566)
+[PASS] test_nonOwnerSettle_reverts() (gas: 410379)
+[PASS] test_premiumExhaustion_stopsCoverage() (gas: 502126)
+[PASS] test_settleExpiredProtection_succeeds() (gas: 377892)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 2.95ms (2.11ms CPU time)
+
+Ran 1 test suite in 19.32ms (2.95ms CPU time): 5 tests passed, 0 failed, 0 skipped (5 total tests)

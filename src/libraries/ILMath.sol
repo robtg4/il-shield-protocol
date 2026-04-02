@@ -79,13 +79,20 @@ library ILMath {
 
     /// @notice Convert token0 amount to token1 value using sqrtPriceX96
     /// @dev value = amount0 * price = amount0 * (sqrtPriceX96)^2 / 2^192
+    ///      Split into two mulDivs to avoid uint160*uint160 overflow
     function _token0ValueInToken1(uint256 amount0, uint160 sqrtPriceX96) internal pure returns (uint256) {
         if (amount0 == 0) return 0;
-        uint256 priceX192 = uint256(sqrtPriceX96) * uint256(sqrtPriceX96);
-        return FullMath.mulDiv(amount0, priceX192, Q192);
+        // amount0 * sqrtPrice / 2^96 * sqrtPrice / 2^96
+        return FullMath.mulDiv(
+            FullMath.mulDiv(amount0, uint256(sqrtPriceX96), Q96),
+            uint256(sqrtPriceX96),
+            Q96
+        );
     }
 
     /// @notice Compute amount0 delta: L * (1/sqrtA - 1/sqrtB)
+    /// @dev Uses Uniswap's approach: L * (sqrtB - sqrtA) / sqrtB / sqrtA
+    ///      Split into two mulDivs to avoid uint160 * uint160 overflow
     function _getAmount0(uint160 sqrtRatioAX96, uint160 sqrtRatioBX96, uint128 liquidity)
         internal
         pure
@@ -94,11 +101,12 @@ library ILMath {
         if (sqrtRatioAX96 > sqrtRatioBX96) {
             (sqrtRatioAX96, sqrtRatioBX96) = (sqrtRatioBX96, sqrtRatioAX96);
         }
-        return FullMath.mulDiv(
-            uint256(liquidity) << 96,
-            sqrtRatioBX96 - sqrtRatioAX96,
-            uint256(sqrtRatioBX96) * uint256(sqrtRatioAX96) // will not overflow for valid sqrt prices
-        );
+        uint256 diff = uint256(sqrtRatioBX96) - uint256(sqrtRatioAX96);
+        // amount0 = L * 2^96 * diff / sqrtB / sqrtA
+        // Step 1: L * diff / sqrtB (result fits in uint256 since L < 2^128, diff < 2^160)
+        // Step 2: result * 2^96 / sqrtA
+        uint256 intermediate = FullMath.mulDiv(uint256(liquidity), diff, uint256(sqrtRatioBX96));
+        return FullMath.mulDiv(intermediate, Q96, uint256(sqrtRatioAX96));
     }
 
     /// @notice Compute amount1 delta: L * (sqrtB - sqrtA)

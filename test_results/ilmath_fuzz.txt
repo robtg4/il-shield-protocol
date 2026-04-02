@@ -1,0 +1,14 @@
+Compiling 1 files with Solc 0.8.26
+Solc 0.8.26 finished in 1.85s
+Compiler run successful!
+
+Ran 6 tests for test/unit/ILMath.t.sol:ILMathTest
+[PASS] test_computeIL_priceDoubles() (gas: 20994)
+[PASS] test_computeIL_priceExitsRangeAbove() (gas: 20084)
+[PASS] test_computeIL_priceExitsRangeBelow() (gas: 20603)
+[PASS] test_computeIL_priceHalves() (gas: 21151)
+[PASS] test_computeIL_zeroPriceChange() (gas: 7228)
+[PASS] test_fuzz_computeIL_matchesPythonReference(uint160,uint160,int24,int24,uint128) (runs: 10000, μ: 25653, ~: 25664)
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 212.65s (212.74s CPU time)
+
+Ran 1 test suite in 212.65s (212.65s CPU time): 6 tests passed, 0 failed, 0 skipped (6 total tests)

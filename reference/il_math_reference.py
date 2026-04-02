@@ -12,8 +12,8 @@ Usage (Foundry FFI):
 import sys
 from decimal import Decimal, getcontext
 
-# Match Q96 precision
-getcontext().prec = 60
+# 100 digits of precision per testing specification
+getcontext().prec = 100
 
 Q96 = Decimal(2**96)
 Q192 = Decimal(2**192)
@@ -107,7 +107,7 @@ def compute_il(
 
 
 def main():
-    if len(sys.argv) != 6:
+    if len(sys.argv) < 6:
         print(
             "Usage: il_math_reference.py <entrySqrtPriceX96> <exitSqrtPriceX96> <tickLower> <tickUpper> <liquidity>",
             file=sys.stderr,
@@ -121,7 +121,7 @@ def main():
     liquidity = int(sys.argv[5])
 
     il = compute_il(entry, exit_, tick_lower, tick_upper, liquidity)
-    # Output as hex for Foundry FFI (abi-encoded uint256)
+    # Output as abi-encoded uint256 for Foundry FFI abi.decode
     print(f"0x{il:064x}")
 
 

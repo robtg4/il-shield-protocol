@@ -1,0 +1,13 @@
+No files changed, compilation skipped
+
+Ran 7 tests for test/unit/JuniorVault.t.sol:JuniorVaultTest
+[PASS] test_deposit_and_redeem() (gas: 324858)
+[PASS] test_receivePremium_access_control() (gas: 14278)
+[PASS] test_sjRatio_blocks_withdrawal() (gas: 616306)
+[PASS] test_withdrawForClaim_access_control() (gas: 14795)
+[PASS] test_withdrawForClaim_partial() (gas: 313596)
+[PASS] test_withdraw_afterLock_succeeds() (gas: 323257)
+[PASS] test_withdraw_beforeLock_reverts() (gas: 288529)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 3.09ms (5.51ms CPU time)
+
+Ran 1 test suite in 20.04ms (3.09ms CPU time): 7 tests passed, 0 failed, 0 skipped (7 total tests)

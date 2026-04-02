@@ -1,0 +1,14 @@
+No files changed, compilation skipped
+
+Ran 8 tests for test/unit/SeniorVault.t.sol:SeniorVaultTest
+[PASS] test_deposit_and_redeem() (gas: 319302)
+[PASS] test_emergencyWithdraw_penalty() (gas: 313121)
+[PASS] test_previewDeposit_accurate() (gas: 285172)
+[PASS] test_receivePremium_access_control() (gas: 14312)
+[PASS] test_receivePremium_increases_assets() (gas: 469446)
+[PASS] test_withdrawForClaim_access_control() (gas: 14936)
+[PASS] test_withdraw_afterLock_succeeds() (gas: 318833)
+[PASS] test_withdraw_beforeLock_reverts() (gas: 288726)
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 3.11ms (8.29ms CPU time)
+
+Ran 1 test suite in 18.08ms (3.11ms CPU time): 8 tests passed, 0 failed, 0 skipped (8 total tests)

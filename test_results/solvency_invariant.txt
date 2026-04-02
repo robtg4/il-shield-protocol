@@ -1,0 +1,28 @@
+No files changed, compilation skipped
+
+Ran 1 test for test/invariant/VaultSolvency.t.sol:VaultSolvencyTest
+[PASS] invariant_solvency() (runs: 1000, calls: 50000, reverts: 0)
+
+╭--------------+------------------------+-------+---------+----------╮
+| Contract     | Selector               | Calls | Reverts | Discards |
++====================================================================+
+| VaultHandler | depositJunior          | 6299  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | depositSenior          | 6324  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | receivePremiumJunior   | 6333  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | receivePremiumSenior   | 6094  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | withdrawForClaimJunior | 6184  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | withdrawForClaimSenior | 6273  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | withdrawJunior         | 6316  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | withdrawSenior         | 6177  | 0       | 0        |
+╰--------------+------------------------+-------+---------+----------╯
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 8.37s (8.37s CPU time)
+
+Ran 1 test suite in 8.37s (8.37s CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)

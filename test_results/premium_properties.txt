@@ -1,0 +1,12 @@
+Compiling 1 files with Solc 0.8.26
+Solc 0.8.26 finished in 1.28s
+Compiler run successful!
+
+Ran 4 tests for test/unit/PremiumMath.t.sol:PremiumMathTest
+[PASS] test_fuzz_premium_equals_gross_when_no_fees(uint256,uint256) (runs: 10000, μ: 7448, ~: 7557)
+[PASS] test_fuzz_premium_monotonic_in_concentration(uint256,uint256) (runs: 10000, μ: 4973, ~: 5308)
+[PASS] test_fuzz_premium_monotonic_in_volatility(uint256,uint256) (runs: 10000, μ: 4586, ~: 5234)
+[PASS] test_fuzz_premium_zero_when_fees_cover_il(uint256,uint256) (runs: 10000, μ: 1788, ~: 1834)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 330.48ms (1.12s CPU time)
+
+Ran 1 test suite in 331.73ms (330.48ms CPU time): 4 tests passed, 0 failed, 0 skipped (4 total tests)

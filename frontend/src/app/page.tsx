@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import { useAccount } from "wagmi";
+import { useSearchParams } from "next/navigation";
 import { parseUnits } from "viem";
 import { BackgroundOrbs } from "@/components/BackgroundOrbs";
 import { NavBar } from "@/components/NavBar";
@@ -30,7 +31,21 @@ import { ADDRESSES, DURATION_BLOCKS } from "@/lib/contracts";
 type Screen = "protect" | "active" | "settlement";
 
 export default function Home() {
+  return (
+    <Suspense>
+      <HomeInner />
+    </Suspense>
+  );
+}
+
+function HomeInner() {
   const { address, isConnected } = useAccount();
+  const searchParams = useSearchParams();
+  const positionIdParam = searchParams.get("positionId");
+  const positionId = useMemo(
+    () => (positionIdParam ? BigInt(positionIdParam) : BigInt(1)),
+    [positionIdParam]
+  );
   const usdcBalance = useUSDCBalance();
   const usdcAllowance = useUSDCAllowance();
   const seniorAssets = useVaultTotalAssets("senior");
@@ -86,7 +101,7 @@ export default function Home() {
       usdcAllowance.refetch();
       setTxStep("register");
       register({
-        positionId: BigInt(1),
+        positionId,
         coverageTier: selectedTier,
         duration: selectedDuration,
         premiumAmount,
@@ -143,7 +158,7 @@ export default function Home() {
     } else {
       setTxStep("register");
       register({
-        positionId: BigInt(1),
+        positionId,
         coverageTier: selectedTier,
         duration: selectedDuration,
         premiumAmount,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useAccount, useConnect, useDisconnect } from "wagmi";
+import Link from "next/link";
 
 function ShieldIcon({ size = 16 }: { size?: number }) {
   return (
@@ -10,7 +11,10 @@ function ShieldIcon({ size = 16 }: { size?: number }) {
   );
 }
 
-const navLinks = ["Pool", "Protect"];
+const navLinks = [
+  { label: "Protect", href: "/" },
+  { label: "Positions", href: "/positions" },
+];
 
 function ConnectButton() {
   const { address, isConnected } = useAccount();
@@ -56,14 +60,13 @@ export function NavBar() {
           </div>
           <div className="hidden items-center gap-6 md:flex">
             {navLinks.map((link) => (
-              <button
-                key={link}
-                className={`text-[15px] transition-colors ${
-                  link === "Protect" ? "text-text1" : "text-text2 hover:text-text1"
-                }`}
+              <Link
+                key={link.label}
+                href={link.href}
+                className="text-[15px] text-text2 transition-colors hover:text-text1"
               >
-                {link}
-              </button>
+                {link.label}
+              </Link>
             ))}
           </div>
         </div>

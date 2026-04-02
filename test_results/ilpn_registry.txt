@@ -1,0 +1,13 @@
+No files changed, compilation skipped
+
+Ran 7 tests for test/unit/ILPNRegistry.t.sol:ILPNRegistryTest
+[PASS] test_approve_thenTransferFrom_reverts() (gas: 92719)
+[PASS] test_burn_byCoreRole_succeeds() (gas: 57797)
+[PASS] test_burn_byNonCoreRole_reverts() (gas: 69019)
+[PASS] test_mint_byCoreRole_succeeds() (gas: 62287)
+[PASS] test_mint_byNonCoreRole_reverts() (gas: 16220)
+[PASS] test_safeTransferFrom_reverts() (gas: 67197)
+[PASS] test_transferFrom_reverts() (gas: 66556)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 891.49µs (1.04ms CPU time)
+
+Ran 1 test suite in 18.60ms (891.49µs CPU time): 7 tests passed, 0 failed, 0 skipped (7 total tests)

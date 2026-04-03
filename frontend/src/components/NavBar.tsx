@@ -1,7 +1,13 @@
 "use client";
 
-import { useAccount, useConnect, useDisconnect } from "wagmi";
+import { useAccount, useConnect, useDisconnect, useChainId } from "wagmi";
 import Link from "next/link";
+
+const CHAIN_NAMES: Record<number, string> = {
+  11155111: "Sepolia",
+  1301: "Unichain Sepolia",
+  1: "Ethereum",
+};
 
 function ShieldIcon({ size = 16 }: { size?: number }) {
   return (
@@ -15,6 +21,19 @@ const navLinks = [
   { label: "Protect", href: "/" },
   { label: "Positions", href: "/positions" },
 ];
+
+function ChainBadge() {
+  const chainId = useChainId();
+  const { isConnected } = useAccount();
+  if (!isConnected) return null;
+  const name = CHAIN_NAMES[chainId] || `Chain ${chainId}`;
+  return (
+    <div className="hidden items-center gap-1.5 rounded-[20px] border border-card-border bg-card px-3 py-2 text-xs text-text2 sm:flex">
+      <div className="h-2 w-2 rounded-full bg-green" />
+      {name}
+    </div>
+  );
+}
 
 function ConnectButton() {
   const { address, isConnected } = useAccount();
@@ -73,9 +92,7 @@ export function NavBar() {
 
         {/* Right: Actions */}
         <div className="flex items-center gap-2">
-          <button className="hidden rounded-xl border border-card-border p-2 text-text2 sm:block">
-            ···
-          </button>
+          <ChainBadge />
           <ConnectButton />
         </div>
       </div>

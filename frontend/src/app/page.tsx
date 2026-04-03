@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 import { useSearchParams } from "next/navigation";
 import { parseUnits } from "viem";
 import { BackgroundOrbs } from "@/components/BackgroundOrbs";
@@ -26,7 +26,8 @@ import {
   useCancelProtection,
   useVaultTotalAssets,
 } from "@/hooks/useILShield";
-import { ADDRESSES, DURATION_BLOCKS } from "@/lib/contracts";
+import { DURATION_BLOCKS } from "@/lib/contracts";
+import { useChainAddresses } from "@/hooks/useILShield";
 
 type Screen = "protect" | "active" | "settlement";
 
@@ -40,6 +41,8 @@ export default function Home() {
 
 function HomeInner() {
   const { address, isConnected } = useAccount();
+  const chainId = useChainId();
+  const addrs = useChainAddresses();
   const searchParams = useSearchParams();
   const positionIdParam = searchParams.get("positionId");
   const positionId = useMemo(
@@ -286,7 +289,7 @@ function HomeInner() {
 
               <p className="mt-4 max-w-[480px] text-center text-sm leading-relaxed text-text2">
                 Protect LP positions with{" "}
-                <span className="text-pink">zero app fees</span> on Unichain Sepolia testnet.
+                <span className="text-pink">zero app fees</span> on Ethereum Sepolia and Unichain Sepolia.
               </p>
 
               <ScrollIndicator />
@@ -403,7 +406,7 @@ function HomeInner() {
                   <SummaryRow label="Position" value="ETH/USDC" />
                   <SummaryRow label="Coverage" value={`${coveragePct}%`} />
                   <SummaryRow label="Duration" value={durationLabel} />
-                  <SummaryRow label="Network" value="Unichain Sepolia" />
+                  <SummaryRow label="Network" value={chainId === 1301 ? "Unichain Sepolia" : "Ethereum Sepolia"} />
                 </div>
 
                 <button
@@ -416,7 +419,7 @@ function HomeInner() {
 
               <p className="mt-4 text-center text-sm text-text2">
                 View transaction on{" "}
-                <span className="cursor-pointer text-pink">Uniscan</span>
+                <span className="cursor-pointer text-pink">{addrs.explorerName}</span>
               </p>
             </>
           )}

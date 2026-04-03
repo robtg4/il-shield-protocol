@@ -1,4 +1,5 @@
 // SPDX-License-Identifier: MIT
+// IL Shield Protocol — Core Settlement Engine
 pragma solidity ^0.8.26;
 
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";

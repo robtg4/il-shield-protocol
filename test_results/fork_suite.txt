@@ -1,0 +1,155 @@
+No files changed, compilation skipped
+
+Ran 8 tests for test/fork/PhaseB_ILPNRegistry.t.sol:PhaseB_ILPNRegistry
+[PASS] test_00_chainlinkAnchor() (gas: 23860)
+Logs:
+  Chainlink ETH/USD: 205132302400
+  Fork (block): 10579405
+
+[PASS] test_B01_mint_byCoreRole() (gas: 383958)
+[PASS] test_B02_mint_byNonCore_reverts() (gas: 13879)
+[PASS] test_B03_transferFrom_reverts() (gas: 386728)
+[PASS] test_B04_safeTransferFrom_reverts() (gas: 387047)
+[PASS] test_B05_burn_onSettle() (gas: 370319)
+[PASS] test_B06_burn_byNonCore_reverts() (gas: 386411)
+[PASS] test_B07_metadata_exists() (gas: 498359)
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 784.35ms (494.40ms CPU time)
+
+Ran 8 tests for test/fork/PhaseE_GasProfile.t.sol:PhaseE_GasProfile
+[PASS] test_00_chainlinkAnchor() (gas: 23889)
+Logs:
+  Chainlink ETH/USD: 205132302400
+  Fork (block): 10579405
+
+[PASS] test_E01_gas_register() (gas: 403475)
+Logs:
+  E01 register() gas: 365357
+
+[PASS] test_E02_gas_settle() (gas: 370621)
+Logs:
+  E02 settle() gas: 60451
+
+[PASS] test_E03_gas_processStreaming_single() (gas: 388599)
+Logs:
+  E03 processStreaming(1) gas: 4176
+
+[PASS] test_E04_gas_processStreaming_batch10() (gas: 2671596)
+Logs:
+  E04 processStreaming(10) gas: 28936
+  E04 per-position: 2893
+
+[PASS] test_E05_gas_seniorDeposit() (gas: 97693)
+Logs:
+  E05 seniorVault.deposit() gas: 79676
+
+[PASS] test_E06_gas_juniorDeposit() (gas: 97699)
+Logs:
+  E06 juniorVault.deposit() gas: 79572
+
+[PASS] test_E07_gas_settle_withIL() (gas: 396449)
+Logs:
+  E07 settle(with IL payout) gas: 90744
+
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 787.57ms (280.34ms CPU time)
+
+Ran 10 tests for test/fork/PhaseC_Lifecycle.t.sol:PhaseC_Lifecycle
+[PASS] test_00_chainlinkAnchor() (gas: 23954)
+Logs:
+  Chainlink ETH/USD: 205132302400
+  Fork (block): 10579405
+
+[PASS] test_C01_register_mintsILPN() (gas: 383908)
+[PASS] test_C02_register_deductsUSDC() (gas: 382875)
+[PASS] test_C03_processStreaming() (gas: 385145)
+[PASS] test_C04_settle_withLiveChainlink() (gas: 370177)
+[PASS] test_C05_chainlink_price_crosscheck() (gas: 41759)
+[PASS] test_C06_topUpPremium() (gas: 392044)
+[PASS] test_C07_cancelProtection_refund() (gas: 333892)
+[PASS] test_C08_multiplePositions_lifecycle() (gas: 857630)
+[PASS] test_C09_settle_withNonZeroIL() (gas: 405249)
+Logs:
+  C09 Computed IL: 9103014021391248
+  C09 MaxPayout cap: 5000000000
+  C09 Expected payout (after cap + fee): 4900000000
+  C09 Actual payout: 4900000000
+
+Suite result: ok. 10 passed; 0 failed; 0 skipped; finished in 897.91ms (522.67ms CPU time)
+
+Ran 8 tests for test/fork/SepoliaFork.t.sol:SepoliaForkTest
+[PASS] test_fork_batchStreamingWithLiveOracle() (gas: 2696286)
+Logs:
+  Batch streaming 10 positions gas: 28930
+
+[PASS] test_fork_chainlinkFeedIsLive() (gas: 41405)
+Logs:
+  Chainlink sqrtPriceX96: 3588364991718241277692813378856
+  Derived ETH price (approx): 2051000000000000000000
+
+[PASS] test_fork_fullSettlementWithLiveOracle() (gas: 418194)
+Logs:
+  Full settlement with live Chainlink: SUCCESS
+
+[PASS] test_fork_gasProfile() (gas: 407615)
+Logs:
+  Register gas (live fork): 360586
+  Settle gas (live fork): 60456
+
+[PASS] test_fork_oracleStalenessWithRealFeed() (gas: 46337)
+[PASS] test_fork_v4PoolManagerIsLive() (gas: 6228)
+Logs:
+  V4 PoolManager codesize: 24009
+
+[PASS] test_fork_v4PositionManagerIsLive() (gas: 3173)
+[PASS] test_fork_vaultWaterfallWithSettlement() (gas: 428131)
+Logs:
+  Vault waterfall: Senior 5000000000000 Junior 1000000000000
+
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 897.93ms (1.52s CPU time)
+
+Ran 13 tests for test/fork/PhaseD_Adversarial.t.sol:PhaseD_Adversarial
+[PASS] test_00_chainlinkAnchor() (gas: 24040)
+Logs:
+  Chainlink ETH/USD: 205132302400
+  Fork (block): 10579405
+
+[PASS] test_D01_doubleSettle_reverts() (gas: 371826)
+[PASS] test_D02_nonOwner_settle_reverts() (gas: 388339)
+[PASS] test_D03_cancelThenSettle_reverts() (gas: 336729)
+[PASS] test_D04_staleOracle_reverts() (gas: 407941)
+[PASS] test_D05_flashloan_sameBlock_zeroPayout() (gas: 368547)
+[PASS] test_D06_cancelReregister_noProfit() (gas: 2570842)
+[PASS] test_D07_accessControl_governanceParams() (gas: 26215)
+[PASS] test_D08_drainJunior_sequentialClaims() (gas: 1386594)
+[PASS] test_D09_selfGrantRole_fails() (gas: 38049)
+[PASS] test_D10_oracleManipulation_nonKeeper() (gas: 18056)
+[PASS] test_D11_vaultInflation_attack_defended() (gas: 1843849)
+Logs:
+  D11 Victim shares: 1999
+  D11 Victim redeemable: 999500499
+
+[PASS] test_D12_batchStreaming_gasLimit() (gas: 12726789)
+Suite result: ok. 13 passed; 0 failed; 0 skipped; finished in 898.03ms (445.99ms CPU time)
+
+Ran 15 tests for test/fork/PhaseA_VaultOps.t.sol:PhaseA_VaultOps
+[PASS] test_00_chainlinkAnchor() (gas: 24131)
+Logs:
+  Chainlink ETH/USD: 205132302400
+  Fork (block): 10579405
+
+[PASS] test_A01_seniorVault_deposit() (gas: 95942)
+[PASS] test_A02_seniorVault_previewMatchesActual() (gas: 98365)
+[PASS] test_A03_seniorVault_prematureWithdrawal_reverts() (gas: 102230)
+[PASS] test_A04_seniorVault_withdrawalAfterLock() (gas: 118193)
+[PASS] test_A05_seniorVault_emergencyWithdraw_penalty() (gas: 104778)
+[PASS] test_A06_seniorVault_receivePremium_increasesAssets() (gas: 64965)
+[PASS] test_A07_seniorVault_withdrawForClaim_accessControl() (gas: 14239)
+[PASS] test_A08_juniorVault_deposit() (gas: 94532)
+[PASS] test_A09_juniorVault_prematureWithdrawal_reverts() (gas: 102236)
+[PASS] test_A10_juniorVault_withdrawalAfterLock() (gas: 123589)
+[PASS] test_A11_juniorVault_sjRatio_blocks_withdrawal() (gas: 189050)
+[PASS] test_A12_juniorVault_withdrawForClaim_partial() (gas: 50217)
+[PASS] test_A13_juniorVault_receivePremium() (gas: 64840)
+[PASS] test_A14_chainlinkFeed_isLive() (gas: 19855)
+Suite result: ok. 15 passed; 0 failed; 0 skipped; finished in 898.14ms (277.63ms CPU time)
+
+Ran 6 test suites in 1.56s (5.16s CPU time): 62 tests passed, 0 failed, 0 skipped (62 total tests)

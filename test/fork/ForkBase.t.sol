@@ -109,6 +109,16 @@ abstract contract ForkBase is Test {
         juniorVault.deposit(25_000e6, address(this));
     }
 
+    /// @notice Chainlink anchor — first test in every fork suite
+    function test_00_chainlinkAnchor() public {
+        (, int256 answer,, uint256 updatedAt,) = AggregatorV3Interface(CHAINLINK_ETH_USD).latestRoundData();
+        assertGt(answer, 500e8, "ETH too cheap");
+        assertLt(answer, 20_000e8, "ETH too expensive");
+        assertGt(updatedAt, block.timestamp - 2 hours, "Chainlink stale >2h");
+        emit log_named_int("Chainlink ETH/USD", answer);
+        emit log_named_uint("Fork (block)", block.number);
+    }
+
     /// @notice Read live Chainlink price
     function _getChainlinkPrice() internal view returns (int256) {
         (, int256 answer,,,) = AggregatorV3Interface(CHAINLINK_ETH_USD).latestRoundData();
@@ -121,5 +131,52 @@ abstract contract ForkBase is Test {
         mockUSDC.approve(address(core), premium);
         ilpnId = core.register(1, 2, 216_000, premium, address(0));
         vm.stopPrank();
+    }
+
+    /// @notice Register with real position parameters (entry price + liquidity injected via vm.store)
+    function _registerWithPosition(
+        address user,
+        uint256 premium,
+        uint160 entrySqrtPriceX96,
+        int24 tickLower,
+        int24 tickUpper,
+        uint128 liquidity
+    ) internal returns (uint256 ilpnId) {
+        ilpnId = _registerAs(user, premium);
+        // The positions mapping is at slot 2 in ILShieldCore (after AccessControl + ReentrancyGuard + Pausable storage)
+        // Each Position occupies multiple slots. We need to find the base slot for positions[ilpnId].
+        // mapping slot = keccak256(abi.encode(key, mappingSlot))
+        // The exact slot depends on inherited contract storage. Use vm.store to write directly.
+        //
+        // Position struct layout (each field in order):
+        //   slot+0: poolId (bytes32)
+        //   slot+1: entrySqrtPriceX96 (uint160) | tickLower (int24) | tickUpper (int24)  [packed]
+        //   slot+2: liquidity (uint128) | coverageTier (uint8) | coverageStartBlock (uint48) | coverageEndBlock (uint48)
+        //
+        // We need to find the mapping slot. ILShieldCore inherits:
+        //   AccessControl (uses ERC7201 namespaced storage)
+        //   ReentrancyGuard (uses ERC7201 namespaced storage)
+        //   Pausable (uses ERC7201 namespaced storage)
+        //   Then own storage: positions at slot 0, nextPositionId at slot 1, etc.
+        // With via_ir and OZ5 namespaced storage, positions mapping is at slot 0.
+
+        // positions mapping is at storage slot 2 (after _roles at 0, _paused at 1)
+        bytes32 baseSlot = keccak256(abi.encode(uint256(ilpnId), uint256(2)));
+
+        // Slot+1: pack entrySqrtPriceX96 (160 bits) | tickLower (24 bits) | tickUpper (24 bits)
+        // Layout: [tickUpper(24) | tickLower(24) | entrySqrtPriceX96(160)] from LSB
+        uint256 packed1 = uint256(entrySqrtPriceX96);
+        packed1 |= uint256(uint24(tickLower)) << 160;
+        packed1 |= uint256(uint24(tickUpper)) << 184;
+        vm.store(address(core), bytes32(uint256(baseSlot) + 1), bytes32(packed1));
+
+        // Slot+2: pack liquidity (128 bits) | coverageTier (8 bits) | coverageStartBlock (48 bits) | coverageEndBlock (48 bits)
+        // Read existing slot to preserve coverageTier and coverage blocks
+        bytes32 existing2 = vm.load(address(core), bytes32(uint256(baseSlot) + 2));
+        uint256 slot2 = uint256(existing2);
+        // Clear liquidity (bottom 128 bits) and write new
+        slot2 = (slot2 >> 128) << 128; // clear bottom 128
+        slot2 |= uint256(liquidity);
+        vm.store(address(core), bytes32(uint256(baseSlot) + 2), bytes32(slot2));
     }
 }

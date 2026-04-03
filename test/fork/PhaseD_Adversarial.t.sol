@@ -118,26 +118,20 @@ contract PhaseD_Adversarial is ForkBase {
         vm.stopPrank();
     }
 
-    function test_D11_vaultInflation_attack_documented() public {
-        // ERC-4626 inflation attack test
-        // FINDING: OZ ERC4626 default _decimalsOffset()=0 means no virtual share protection.
-        // On a fresh vault, an attacker CAN inflate share price via donation.
-        // MITIGATION: The production vaults are pre-seeded with large deposits during
-        // deployment (5M Senior, 1M Junior), making inflation attacks economically
-        // impractical. For defense-in-depth, override _decimalsOffset() to return 6.
-        //
-        // This test documents the finding rather than asserting protection.
+    function test_D11_vaultInflation_attack_defended() public {
+        // ERC-4626 inflation attack — now defended by _decimalsOffset() = 6
         address attacker = address(0xBAD);
         address victim = address(0xF00D);
         mockUSDC.mint(attacker, 2_000_000e6);
         mockUSDC.mint(victim, 1_000e6);
 
+        // Fresh vault — even with no pre-seeding, _decimalsOffset protects
         SeniorVault freshVault = new SeniorVault(IERC20(address(mockUSDC)), address(this));
 
         vm.startPrank(attacker);
         mockUSDC.approve(address(freshVault), 1);
         freshVault.deposit(1, attacker);
-        mockUSDC.transfer(address(freshVault), 1_000_000e6); // donate
+        mockUSDC.transfer(address(freshVault), 1_000_000e6); // donate 1M
         vm.stopPrank();
 
         vm.startPrank(victim);
@@ -145,11 +139,14 @@ contract PhaseD_Adversarial is ForkBase {
         uint256 shares = freshVault.deposit(1_000e6, victim);
         vm.stopPrank();
 
-        // Document: victim gets 0 shares on unprotected fresh vault
-        // This is a known limitation mitigated by pre-seeding
-        console.log("D11 FINDING: Victim shares on fresh vault:", shares);
-        console.log("D11 NOTE: Production vaults pre-seeded, attack impractical");
-        // Test passes — finding documented
+        // With _decimalsOffset=6, victim MUST get shares
+        assertTrue(shares > 0, "D11: Victim must get shares (decimalsOffset=6 protects)");
+
+        uint256 redeemable = freshVault.previewRedeem(shares);
+        console.log("D11 Victim shares:", shares);
+        console.log("D11 Victim redeemable:", redeemable);
+        // Victim should lose <1% to rounding
+        assertGt(redeemable, 990e6, "D11: Victim must not lose >1%");
     }
 
     function test_D12_batchStreaming_gasLimit() public {

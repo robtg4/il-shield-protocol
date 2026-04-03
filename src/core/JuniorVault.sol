@@ -39,6 +39,11 @@ contract JuniorVault is ERC4626, AccessControl, ReentrancyGuard, Pausable {
     event PremiumReceived(uint256 amount);
     event ClaimPaid(uint256 amount, address indexed to);
 
+    /// @notice ERC-4626 inflation attack defense: virtual share offset of 10^6
+    function _decimalsOffset() internal pure override returns (uint8) {
+        return 6;
+    }
+
     constructor(IERC20 _usdc, address _seniorVault, address admin)
         ERC4626(_usdc)
         ERC20("IL Shield Junior Vault", "ilsJUNIOR")

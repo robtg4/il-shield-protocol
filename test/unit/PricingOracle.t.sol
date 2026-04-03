@@ -150,4 +150,53 @@ contract PricingOracleTest is Test {
         // With high vol/liq, fees > IL, rate = 0
         assertEq(rate, 0);
     }
+
+    // --- Branch coverage: _max3 all orderings ---
+    function test_max3_impliedWins() public {
+        // realized=0.1, implied=0.8, floor=0.35 → implied wins (a<b, b>=c)
+        vm.prank(keeper);
+        oracle.updateVolatility(POOL_ID, 0.1e18, 0.8e18);
+        assertEq(oracle.getVolatility(POOL_ID), 0.8e18);
+    }
+
+    function test_max3_realizedWins_overFloor() public {
+        // realized=0.9, implied=0.3, floor=0.35 → realized wins (a>=b, a>=c)
+        vm.prank(keeper);
+        oracle.updateVolatility(POOL_ID, 0.9e18, 0.3e18);
+        assertEq(oracle.getVolatility(POOL_ID), 0.9e18);
+    }
+
+    function test_max3_floorWins_overBoth() public {
+        // realized=0.1, implied=0.2, floor=0.35 → floor wins (a<b, b<c path via floor)
+        vm.prank(keeper);
+        oracle.updateVolatility(POOL_ID, 0.1e18, 0.2e18);
+        assertEq(oracle.getVolatility(POOL_ID), 0.35e18);
+    }
+
+    function test_max3_floorWins_aGeBButLtC() public {
+        // realized=0.3, implied=0.2, floor=0.35 → a>=b but a<c → floor wins
+        vm.prank(keeper);
+        oracle.updateVolatility(POOL_ID, 0.3e18, 0.2e18);
+        assertEq(oracle.getVolatility(POOL_ID), 0.35e18);
+    }
+
+    // --- Branch: TWAP divergence is in ILShieldCore, not PricingOracle ---
+    // The TWAP divergence median resolution path does not exist in PricingOracle.
+    // PricingOracle only provides getTWAPSqrtPriceX96() which is a simple storage read.
+    // The divergence check and median resolution are in ILShieldCore._computeSettlementPrice().
+    // That function currently reverts on >3% divergence — there is no median fallback implemented.
+    // The remaining uncovered PricingOracle branches are _sqrt(0) which requires price=0
+    // (but we revert before reaching sqrt), and setUtilization which is a simple setter.
+
+    function test_setUtilization_byKeeper() public {
+        vm.prank(keeper);
+        oracle.setUtilization(5000);
+        assertEq(oracle.utilizationBps(), 5000);
+    }
+
+    function test_setUtilization_byNonKeeper_reverts() public {
+        vm.prank(attacker);
+        vm.expectRevert();
+        oracle.setUtilization(5000);
+    }
 }

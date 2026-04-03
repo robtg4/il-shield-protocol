@@ -1,0 +1,59 @@
+name: IL Shield Battle Tests
+
+on:
+  push:
+    branches: [test/sepolia-campaign, main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  fork-tests:
+    name: Fork Tests (Live Sepolia)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Run fork test suite against live Sepolia
+        env:
+          SEPOLIA_RPC_URL: ${{ secrets.SEPOLIA_RPC_URL }}
+        run: |
+          forge test --match-path "test/fork/*" -vvv \
+            2>&1 | tee test_results/ci_fork_$(date +%Y%m%d).txt
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: fork-test-results
+          path: test_results/
+
+      - name: Check for failures
+        run: |
+          if grep -q "FAIL" test_results/ci_fork_*.txt; then
+            echo "::error::Fork tests have failures"
+            exit 1
+          fi
+
+  unit-tests:
+    name: Unit + Integration + Adversarial
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Run full test suite
+        run: forge test --match-path "test/unit/*" --match-path "test/integration/*" --match-path "test/adversarial/*" --match-path "test/invariant/*" -vvv

@@ -1,0 +1,233 @@
+No files changed, compilation skipped
+
+Ran 6 tests for test/fork/PhaseE_GasProfile.t.sol:PhaseE_GasProfile
+[PASS] test_E01_gas_register() (gas: 403480)
+Logs:
+  E01 register() gas: 365357
+
+[PASS] test_E02_gas_settle() (gas: 370604)
+Logs:
+  E02 settle() gas: 60451
+
+[PASS] test_E03_gas_processStreaming_single() (gas: 388577)
+Logs:
+  E03 processStreaming(1) gas: 4176
+
+[PASS] test_E04_gas_processStreaming_batch10() (gas: 2671596)
+Logs:
+  E04 processStreaming(10) gas: 28936
+  E04 per-position: 2893
+
+[PASS] test_E05_gas_seniorDeposit() (gas: 97660)
+Logs:
+  E05 seniorVault.deposit() gas: 79643
+
+[PASS] test_E06_gas_juniorDeposit() (gas: 97666)
+Logs:
+  E06 juniorVault.deposit() gas: 79539
+
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 919.10ms (319.11ms CPU time)
+
+Ran 7 tests for test/fork/PhaseB_ILPNRegistry.t.sol:PhaseB_ILPNRegistry
+[PASS] test_B01_mint_byCoreRole() (gas: 383936)
+[PASS] test_B02_mint_byNonCore_reverts() (gas: 13879)
+[PASS] test_B03_transferFrom_reverts() (gas: 386728)
+[PASS] test_B04_safeTransferFrom_reverts() (gas: 387047)
+[PASS] test_B05_burn_onSettle() (gas: 370319)
+[PASS] test_B06_burn_byNonCore_reverts() (gas: 386411)
+[PASS] test_B07_metadata_exists() (gas: 498359)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 919.12ms (392.38ms CPU time)
+
+Ran 14 tests for test/fork/PhaseA_VaultOps.t.sol:PhaseA_VaultOps
+[PASS] test_A01_seniorVault_deposit() (gas: 95909)
+[PASS] test_A02_seniorVault_previewMatchesActual() (gas: 98305)
+[PASS] test_A03_seniorVault_prematureWithdrawal_reverts() (gas: 102197)
+[PASS] test_A04_seniorVault_withdrawalAfterLock() (gas: 118094)
+[PASS] test_A05_seniorVault_emergencyWithdraw_penalty() (gas: 104699)
+[FAIL: AccessControlUnauthorizedAccount(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496, 0x502d3d275257923b2bea6ea25d9631f12369fb532871f13eb85eb09dc0fb4842)] test_A06_seniorVault_receivePremium_increasesAssets() (gas: 54022)
+Traces:
+  [54022] PhaseA_VaultOps::test_A06_seniorVault_receivePremium_increasesAssets()
+    ├─ [5587] SeniorVault::totalAssets() [staticcall]
+    │   ├─ [2537] MockUSDC::balanceOf(SeniorVault: [0xc7183455a4C133Ae270771860664b6B7ec320bB1]) [staticcall]
+    │   │   └─ ← [Return] 100000000000 [1e11]
+    │   └─ ← [Return] 100000000000 [1e11]
+    ├─ [12265] MockUSDC::mint(PhaseA_VaultOps: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], 1000000000 [1e9])
+    │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: PhaseA_VaultOps: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], value: 1000000000 [1e9])
+    │   └─ ← [Stop]
+    ├─ [24325] MockUSDC::approve(SeniorVault: [0xc7183455a4C133Ae270771860664b6B7ec320bB1], 1000000000 [1e9])
+    │   ├─ emit Approval(owner: PhaseA_VaultOps: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], spender: SeniorVault: [0xc7183455a4C133Ae270771860664b6B7ec320bB1], value: 1000000000 [1e9])
+    │   └─ ← [Return] true
+    ├─ [2576] SeniorVault::receivePremium(1000000000 [1e9])
+    │   └─ ← [Revert] AccessControlUnauthorizedAccount(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496, 0x502d3d275257923b2bea6ea25d9631f12369fb532871f13eb85eb09dc0fb4842)
+    └─ ← [Revert] AccessControlUnauthorizedAccount(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496, 0x502d3d275257923b2bea6ea25d9631f12369fb532871f13eb85eb09dc0fb4842)
+
+Backtrace:
+  at SeniorVault.receivePremium
+  at PhaseA_VaultOps.test_A06_seniorVault_receivePremium_increasesAssets
+
+[PASS] test_A07_seniorVault_withdrawForClaim_accessControl() (gas: 14239)
+[PASS] test_A08_juniorVault_deposit() (gas: 94499)
+[PASS] test_A09_juniorVault_prematureWithdrawal_reverts() (gas: 102203)
+[PASS] test_A10_juniorVault_withdrawalAfterLock() (gas: 123490)
+[FAIL: next call did not revert as expected] test_A11_juniorVault_sjRatio_blocks_withdrawal() (gas: 63773)
+Traces:
+  [63773] PhaseA_VaultOps::test_A11_juniorVault_sjRatio_blocks_withdrawal()
+    ├─ [0] VM::roll(10878801 [1.087e7])
+    │   └─ ← [Return]
+    ├─ [0] VM::expectRevert(custom error 0xf4844814)
+    │   └─ ← [Return]
+    ├─ [55122] JuniorVault::withdraw(1000000 [1e6], PhaseA_VaultOps: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], PhaseA_VaultOps: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496])
+    │   ├─ [2537] MockUSDC::balanceOf(JuniorVault: [0xa0Cb889707d426A7A386870A03bc70d1b0697598]) [staticcall]
+    │   │   └─ ← [Return] 25000000000 [2.5e10]
+    │   ├─ [3087] SeniorVault::totalAssets() [staticcall]
+    │   │   ├─ [2537] MockUSDC::balanceOf(SeniorVault: [0xc7183455a4C133Ae270771860664b6B7ec320bB1]) [staticcall]
+    │   │   │   └─ ← [Return] 100000000000 [1e11]
+    │   │   └─ ← [Return] 100000000000 [1e11]
+    │   ├─ [537] MockUSDC::balanceOf(JuniorVault: [0xa0Cb889707d426A7A386870A03bc70d1b0697598]) [staticcall]
+    │   │   └─ ← [Return] 25000000000 [2.5e10]
+    │   ├─ [537] MockUSDC::balanceOf(JuniorVault: [0xa0Cb889707d426A7A386870A03bc70d1b0697598]) [staticcall]
+    │   │   └─ ← [Return] 25000000000 [2.5e10]
+    │   ├─ emit Transfer(from: PhaseA_VaultOps: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], to: 0x0000000000000000000000000000000000000000, value: 1000000 [1e6])
+    │   ├─ [10530] MockUSDC::transfer(PhaseA_VaultOps: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], 1000000 [1e6])
+    │   │   ├─ emit Transfer(from: JuniorVault: [0xa0Cb889707d426A7A386870A03bc70d1b0697598], to: PhaseA_VaultOps: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], value: 1000000 [1e6])
+    │   │   └─ ← [Return] true
+    │   ├─ emit Withdraw(sender: PhaseA_VaultOps: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], receiver: PhaseA_VaultOps: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], owner: PhaseA_VaultOps: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], assets: 1000000 [1e6], shares: 1000000 [1e6])
+    │   └─ ← [Return] 1000000 [1e6]
+    └─ ← [Revert] next call did not revert as expected
+
+Backtrace:
+  at PhaseA_VaultOps.test_A11_juniorVault_sjRatio_blocks_withdrawal
+
+[FAIL: AccessControlUnauthorizedAccount(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496, 0x502d3d275257923b2bea6ea25d9631f12369fb532871f13eb85eb09dc0fb4842)] test_A12_juniorVault_withdrawForClaim_partial() (gas: 8610)
+Traces:
+  [8610] PhaseA_VaultOps::test_A12_juniorVault_withdrawForClaim_partial()
+    ├─ [3114] JuniorVault::withdrawForClaim(30000000000 [3e10], PhaseA_VaultOps: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496])
+    │   └─ ← [Revert] AccessControlUnauthorizedAccount(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496, 0x502d3d275257923b2bea6ea25d9631f12369fb532871f13eb85eb09dc0fb4842)
+    └─ ← [Revert] AccessControlUnauthorizedAccount(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496, 0x502d3d275257923b2bea6ea25d9631f12369fb532871f13eb85eb09dc0fb4842)
+
+Backtrace:
+  at JuniorVault.withdrawForClaim
+  at PhaseA_VaultOps.test_A12_juniorVault_withdrawForClaim_partial
+
+[FAIL: AccessControlUnauthorizedAccount(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496, 0x502d3d275257923b2bea6ea25d9631f12369fb532871f13eb85eb09dc0fb4842)] test_A13_juniorVault_receivePremium() (gas: 53890)
+Traces:
+  [53890] PhaseA_VaultOps::test_A13_juniorVault_receivePremium()
+    ├─ [5587] JuniorVault::totalAssets() [staticcall]
+    │   ├─ [2537] MockUSDC::balanceOf(JuniorVault: [0xa0Cb889707d426A7A386870A03bc70d1b0697598]) [staticcall]
+    │   │   └─ ← [Return] 25000000000 [2.5e10]
+    │   └─ ← [Return] 25000000000 [2.5e10]
+    ├─ [12265] MockUSDC::mint(PhaseA_VaultOps: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], 500000000 [5e8])
+    │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: PhaseA_VaultOps: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], value: 500000000 [5e8])
+    │   └─ ← [Stop]
+    ├─ [24325] MockUSDC::approve(JuniorVault: [0xa0Cb889707d426A7A386870A03bc70d1b0697598], 500000000 [5e8])
+    │   ├─ emit Approval(owner: PhaseA_VaultOps: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], spender: JuniorVault: [0xa0Cb889707d426A7A386870A03bc70d1b0697598], value: 500000000 [5e8])
+    │   └─ ← [Return] true
+    ├─ [2532] JuniorVault::receivePremium(500000000 [5e8])
+    │   └─ ← [Revert] AccessControlUnauthorizedAccount(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496, 0x502d3d275257923b2bea6ea25d9631f12369fb532871f13eb85eb09dc0fb4842)
+    └─ ← [Revert] AccessControlUnauthorizedAccount(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496, 0x502d3d275257923b2bea6ea25d9631f12369fb532871f13eb85eb09dc0fb4842)
+
+Backtrace:
+  at JuniorVault.receivePremium
+  at PhaseA_VaultOps.test_A13_juniorVault_receivePremium
+
+[PASS] test_A14_chainlinkFeed_isLive() (gas: 19755)
+Suite result: FAILED. 10 passed; 4 failed; 0 skipped; finished in 919.12ms (427.78ms CPU time)
+
+Ran 8 tests for test/fork/PhaseC_Lifecycle.t.sol:PhaseC_Lifecycle
+[PASS] test_C01_register_mintsILPN() (gas: 383886)
+[PASS] test_C02_register_deductsUSDC() (gas: 382780)
+[PASS] test_C03_processStreaming() (gas: 385145)
+[PASS] test_C04_settle_withLiveChainlink() (gas: 370177)
+[PASS] test_C05_chainlink_price_crosscheck() (gas: 41657)
+[PASS] test_C06_topUpPremium() (gas: 392044)
+[PASS] test_C07_cancelProtection_refund() (gas: 333896)
+[PASS] test_C08_multiplePositions_lifecycle() (gas: 857595)
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 919.13ms (865.89ms CPU time)
+
+Ran 12 tests for test/fork/PhaseD_Adversarial.t.sol:PhaseD_Adversarial
+[PASS] test_D01_doubleSettle_reverts() (gas: 371826)
+[PASS] test_D02_nonOwner_settle_reverts() (gas: 388339)
+[PASS] test_D03_cancelThenSettle_reverts() (gas: 336729)
+[PASS] test_D04_staleOracle_reverts() (gas: 407941)
+[PASS] test_D05_flashloan_sameBlock_zeroPayout() (gas: 368547)
+[PASS] test_D06_cancelReregister_noProfit() (gas: 2570842)
+[PASS] test_D07_accessControl_governanceParams() (gas: 26215)
+[PASS] test_D08_drainJunior_sequentialClaims() (gas: 1386594)
+[PASS] test_D09_selfGrantRole_fails() (gas: 38049)
+[PASS] test_D10_oracleManipulation_nonKeeper() (gas: 18056)
+[FAIL: D11: Victim must get shares (OZ offset protects)] test_D11_vaultInflation_attack() (gas: 1876049)
+Traces:
+  [1876049] PhaseD_Adversarial::test_D11_vaultInflation_attack()
+    ├─ [29365] MockUSDC::mint(0x0000000000000000000000000000000000000Bad, 2000000000000 [2e12])
+    │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: 0x0000000000000000000000000000000000000Bad, value: 2000000000000 [2e12])
+    │   └─ ← [Stop]
+    ├─ [24565] MockUSDC::mint(0x000000000000000000000000000000000000F00D, 1000000000 [1e9])
+    │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: 0x000000000000000000000000000000000000F00D, value: 1000000000 [1e9])
+    │   └─ ← [Stop]
+    ├─ [1585474] → new SeniorVault@0xA4AD4f68d0b91CFD19687c881e50f3A00242828c
+    │   ├─ [241] MockUSDC::decimals() [staticcall]
+    │   │   └─ ← [Return] 6
+    │   ├─ emit RoleGranted(role: 0x0000000000000000000000000000000000000000000000000000000000000000, account: PhaseD_Adversarial: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], sender: PhaseD_Adversarial: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496])
+    │   ├─ emit RoleGranted(role: 0x71840dc4906352362b0cdaf79870196c8e42acafade72d5d5a6d59291253ceb1, account: PhaseD_Adversarial: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496], sender: PhaseD_Adversarial: [0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496])
+    │   └─ ← [Return] 7113 bytes of code
+    ├─ [0] VM::startPrank(0x0000000000000000000000000000000000000Bad)
+    │   └─ ← [Return]
+    ├─ [24325] MockUSDC::approve(SeniorVault: [0xA4AD4f68d0b91CFD19687c881e50f3A00242828c], 1)
+    │   ├─ emit Approval(owner: 0x0000000000000000000000000000000000000Bad, spender: SeniorVault: [0xA4AD4f68d0b91CFD19687c881e50f3A00242828c], value: 1)
+    │   └─ ← [Return] true
+    ├─ [101111] SeniorVault::deposit(1, 0x0000000000000000000000000000000000000Bad)
+    │   ├─ [2537] MockUSDC::balanceOf(SeniorVault: [0xA4AD4f68d0b91CFD19687c881e50f3A00242828c]) [staticcall]
+    │   │   └─ ← [Return] 0
+    │   ├─ [23423] MockUSDC::transferFrom(0x0000000000000000000000000000000000000Bad, SeniorVault: [0xA4AD4f68d0b91CFD19687c881e50f3A00242828c], 1)
+    │   │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000Bad, to: SeniorVault: [0xA4AD4f68d0b91CFD19687c881e50f3A00242828c], value: 1)
+    │   │   └─ ← [Return] true
+    │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: 0x0000000000000000000000000000000000000Bad, value: 1)
+    │   ├─ emit Deposit(sender: 0x0000000000000000000000000000000000000Bad, owner: 0x0000000000000000000000000000000000000Bad, assets: 1, shares: 1)
+    │   └─ ← [Return] 1
+    ├─ [2930] MockUSDC::transfer(SeniorVault: [0xA4AD4f68d0b91CFD19687c881e50f3A00242828c], 1000000000000 [1e12])
+    │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000Bad, to: SeniorVault: [0xA4AD4f68d0b91CFD19687c881e50f3A00242828c], value: 1000000000000 [1e12])
+    │   └─ ← [Return] true
+    ├─ [0] VM::stopPrank()
+    │   └─ ← [Return]
+    ├─ [0] VM::startPrank(0x000000000000000000000000000000000000F00D)
+    │   └─ ← [Return]
+    ├─ [24325] MockUSDC::approve(SeniorVault: [0xA4AD4f68d0b91CFD19687c881e50f3A00242828c], 1000000000 [1e9])
+    │   ├─ emit Approval(owner: 0x000000000000000000000000000000000000F00D, spender: SeniorVault: [0xA4AD4f68d0b91CFD19687c881e50f3A00242828c], value: 1000000000 [1e9])
+    │   └─ ← [Return] true
+    ├─ [35411] SeniorVault::deposit(1000000000 [1e9], 0x000000000000000000000000000000000000F00D)
+    │   ├─ [537] MockUSDC::balanceOf(SeniorVault: [0xA4AD4f68d0b91CFD19687c881e50f3A00242828c]) [staticcall]
+    │   │   └─ ← [Return] 1000000000001 [1e12]
+    │   ├─ [3523] MockUSDC::transferFrom(0x000000000000000000000000000000000000F00D, SeniorVault: [0xA4AD4f68d0b91CFD19687c881e50f3A00242828c], 1000000000 [1e9])
+    │   │   ├─ emit Transfer(from: 0x000000000000000000000000000000000000F00D, to: SeniorVault: [0xA4AD4f68d0b91CFD19687c881e50f3A00242828c], value: 1000000000 [1e9])
+    │   │   └─ ← [Return] true
+    │   ├─ emit Transfer(from: 0x0000000000000000000000000000000000000000, to: 0x000000000000000000000000000000000000F00D, value: 0)
+    │   ├─ emit Deposit(sender: 0x000000000000000000000000000000000000F00D, owner: 0x000000000000000000000000000000000000F00D, assets: 1000000000 [1e9], shares: 0)
+    │   └─ ← [Return] 0
+    ├─ [0] VM::stopPrank()
+    │   └─ ← [Return]
+    ├─ [0] VM::assertTrue(false, "D11: Victim must get shares (OZ offset protects)") [staticcall]
+    │   └─ ← [Revert] D11: Victim must get shares (OZ offset protects)
+    └─ ← [Revert] D11: Victim must get shares (OZ offset protects)
+
+Backtrace:
+  at VM.assertTrue
+  at PhaseD_Adversarial.test_D11_vaultInflation_attack
+
+[PASS] test_D12_batchStreaming_gasLimit() (gas: 12726789)
+Suite result: FAILED. 11 passed; 1 failed; 0 skipped; finished in 920.29ms (1.40s CPU time)
+
+Ran 5 test suites in 2.15s (4.60s CPU time): 42 tests passed, 5 failed, 0 skipped (47 total tests)
+
+Failing tests:
+Encountered 4 failing tests in test/fork/PhaseA_VaultOps.t.sol:PhaseA_VaultOps
+[FAIL: AccessControlUnauthorizedAccount(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496, 0x502d3d275257923b2bea6ea25d9631f12369fb532871f13eb85eb09dc0fb4842)] test_A06_seniorVault_receivePremium_increasesAssets() (gas: 54022)
+[FAIL: next call did not revert as expected] test_A11_juniorVault_sjRatio_blocks_withdrawal() (gas: 63773)
+[FAIL: AccessControlUnauthorizedAccount(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496, 0x502d3d275257923b2bea6ea25d9631f12369fb532871f13eb85eb09dc0fb4842)] test_A12_juniorVault_withdrawForClaim_partial() (gas: 8610)
+[FAIL: AccessControlUnauthorizedAccount(0x7FA9385bE102ac3EAc297483Dd6233D62b3e1496, 0x502d3d275257923b2bea6ea25d9631f12369fb532871f13eb85eb09dc0fb4842)] test_A13_juniorVault_receivePremium() (gas: 53890)
+
+Encountered 1 failing test in test/fork/PhaseD_Adversarial.t.sol:PhaseD_Adversarial
+[FAIL: D11: Victim must get shares (OZ offset protects)] test_D11_vaultInflation_attack() (gas: 1876049)
+
+Encountered a total of 5 failing tests, 42 tests succeeded
+
+Tip: Run `forge test --rerun` to retry only the 5 failed tests

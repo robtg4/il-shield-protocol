@@ -1,0 +1,78 @@
+No files changed, compilation skipped
+
+Ran 7 tests for test/fork/PhaseB_ILPNRegistry.t.sol:PhaseB_ILPNRegistry
+[PASS] test_B01_mint_byCoreRole() (gas: 383936)
+[PASS] test_B02_mint_byNonCore_reverts() (gas: 13879)
+[PASS] test_B03_transferFrom_reverts() (gas: 386728)
+[PASS] test_B04_safeTransferFrom_reverts() (gas: 387047)
+[PASS] test_B05_burn_onSettle() (gas: 370319)
+[PASS] test_B06_burn_byNonCore_reverts() (gas: 386411)
+[PASS] test_B07_metadata_exists() (gas: 498359)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 838.89ms (258.68ms CPU time)
+
+Ran 6 tests for test/fork/PhaseE_GasProfile.t.sol:PhaseE_GasProfile
+[PASS] test_E01_gas_register() (gas: 403480)
+[PASS] test_E02_gas_settle() (gas: 370604)
+[PASS] test_E03_gas_processStreaming_single() (gas: 388577)
+[PASS] test_E04_gas_processStreaming_batch10() (gas: 2671596)
+[PASS] test_E05_gas_seniorDeposit() (gas: 97660)
+[PASS] test_E06_gas_juniorDeposit() (gas: 97666)
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 839.12ms (396.30ms CPU time)
+
+Ran 8 tests for test/fork/PhaseC_Lifecycle.t.sol:PhaseC_Lifecycle
+[PASS] test_C01_register_mintsILPN() (gas: 383886)
+[PASS] test_C02_register_deductsUSDC() (gas: 382780)
+[PASS] test_C03_processStreaming() (gas: 385145)
+[PASS] test_C04_settle_withLiveChainlink() (gas: 370177)
+[PASS] test_C05_chainlink_price_crosscheck() (gas: 41657)
+[PASS] test_C06_topUpPremium() (gas: 392044)
+[PASS] test_C07_cancelProtection_refund() (gas: 333896)
+[PASS] test_C08_multiplePositions_lifecycle() (gas: 857595)
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 839.24ms (738.09ms CPU time)
+
+Ran 14 tests for test/fork/PhaseA_VaultOps.t.sol:PhaseA_VaultOps
+[PASS] test_A01_seniorVault_deposit() (gas: 95909)
+[PASS] test_A02_seniorVault_previewMatchesActual() (gas: 98305)
+[PASS] test_A03_seniorVault_prematureWithdrawal_reverts() (gas: 102197)
+[PASS] test_A04_seniorVault_withdrawalAfterLock() (gas: 118094)
+[PASS] test_A05_seniorVault_emergencyWithdraw_penalty() (gas: 104725)
+[PASS] test_A06_seniorVault_receivePremium_increasesAssets() (gas: 64970)
+[PASS] test_A07_seniorVault_withdrawForClaim_accessControl() (gas: 14239)
+[PASS] test_A08_juniorVault_deposit() (gas: 94499)
+[PASS] test_A09_juniorVault_prematureWithdrawal_reverts() (gas: 102203)
+[PASS] test_A10_juniorVault_withdrawalAfterLock() (gas: 123490)
+[PASS] test_A11_juniorVault_sjRatio_blocks_withdrawal() (gas: 188984)
+[PASS] test_A12_juniorVault_withdrawForClaim_partial() (gas: 50217)
+[PASS] test_A13_juniorVault_receivePremium() (gas: 64845)
+[PASS] test_A14_chainlinkFeed_isLive() (gas: 19755)
+Suite result: ok. 14 passed; 0 failed; 0 skipped; finished in 839.30ms (363.83ms CPU time)
+
+Ran 12 tests for test/fork/PhaseD_Adversarial.t.sol:PhaseD_Adversarial
+[PASS] test_D01_doubleSettle_reverts() (gas: 371826)
+[PASS] test_D02_nonOwner_settle_reverts() (gas: 388339)
+[PASS] test_D03_cancelThenSettle_reverts() (gas: 336729)
+[PASS] test_D04_staleOracle_reverts() (gas: 407941)
+[PASS] test_D05_flashloan_sameBlock_zeroPayout() (gas: 368547)
+[PASS] test_D06_cancelReregister_noProfit() (gas: 2570842)
+[PASS] test_D07_accessControl_governanceParams() (gas: 26215)
+[PASS] test_D08_drainJunior_sequentialClaims() (gas: 1386594)
+[PASS] test_D09_selfGrantRole_fails() (gas: 38049)
+[PASS] test_D10_oracleManipulation_nonKeeper() (gas: 18056)
+[PASS] test_D11_vaultInflation_attack_documented() (gas: 1819383)
+[PASS] test_D12_batchStreaming_gasLimit() (gas: 12726789)
+Suite result: ok. 12 passed; 0 failed; 0 skipped; finished in 839.68ms (1.03s CPU time)
+
+╭---------------------+--------+--------+---------╮
+| Test Suite          | Passed | Failed | Skipped |
++=================================================+
+| PhaseA_VaultOps     | 14     | 0      | 0       |
+|---------------------+--------+--------+---------|
+| PhaseB_ILPNRegistry | 7      | 0      | 0       |
+|---------------------+--------+--------+---------|
+| PhaseC_Lifecycle    | 8      | 0      | 0       |
+|---------------------+--------+--------+---------|
+| PhaseD_Adversarial  | 12     | 0      | 0       |
+|---------------------+--------+--------+---------|
+| PhaseE_GasProfile   | 6      | 0      | 0       |
+╰---------------------+--------+--------+---------╯
+

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.26;
 
 import {ForkBase, console} from "./ForkBase.t.sol";
+import {ILMath} from "../../src/libraries/ILMath.sol";
 
 /// @title Phase E: Gas Profiling on Live Fork (E01–E06)
 contract PhaseE_GasProfile is ForkBase {
@@ -79,5 +80,23 @@ contract PhaseE_GasProfile is ForkBase {
         vm.stopPrank();
         console.log("E06 juniorVault.deposit() gas:", gasUsed);
         assertLt(gasUsed, 200_000, "E06: deposit under 200K gas");
+    }
+
+    function test_E07_gas_settle_withIL() public {
+        // Register with real position params to produce non-zero IL
+        uint160 entrySqrt = 79228162514264337593543950336; // 1:1
+        uint160 exitSqrt = 86787299046364038601618741436;  // +20%
+        uint256 ilpnId = _registerWithPosition(alice, 500e6, entrySqrt, -6000, 6000, 1e18);
+
+        vm.roll(block.number + 10);
+
+        vm.startPrank(alice);
+        uint256 g = gasleft();
+        core.settle(ilpnId, exitSqrt, "");
+        uint256 gasUsed = g - gasleft();
+        vm.stopPrank();
+
+        console.log("E07 settle(with IL payout) gas:", gasUsed);
+        assertLt(gasUsed, 500_000, "E07: settle with IL under 500K gas");
     }
 }

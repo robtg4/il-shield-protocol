@@ -51,6 +51,11 @@ contract SeniorVault is ERC4626, AccessControl, ReentrancyGuard, Pausable {
     event ClaimPaid(uint256 amount, address indexed to);
     event WithdrawalQueued(address indexed owner, uint256 availableBlock);
 
+    /// @notice ERC-4626 inflation attack defense: virtual share offset of 10^6
+    function _decimalsOffset() internal pure override returns (uint8) {
+        return 6;
+    }
+
     constructor(IERC20 _usdc, address admin)
         ERC4626(_usdc)
         ERC20("IL Shield Senior Vault", "ilsSENIOR")

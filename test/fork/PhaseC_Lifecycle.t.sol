@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-import {ForkBase} from "./ForkBase.t.sol";
+import {ForkBase, console} from "./ForkBase.t.sol";
+import {ILMath} from "../../src/libraries/ILMath.sol";
 
 /// @title Phase C: Full Lifecycle (C01–C08)
 contract PhaseC_Lifecycle is ForkBase {
@@ -86,5 +87,46 @@ contract PhaseC_Lifecycle is ForkBase {
 
         // id3 still active
         assertEq(ilpnRegistry.ownerOf(id3), bob, "C08: Bob's position still active");
+    }
+
+    function test_C09_settle_withNonZeroIL() public {
+        // Entry at 1:1 (sqrtPrice = 2^96)
+        uint160 entrySqrt = 79228162514264337593543950336;
+        // Exit at 20% price increase: sqrt(1.2) * 2^96 ≈ 86,787,299,046,364,038,601,618,741,436
+        uint160 exitSqrt = 86787299046364038601618741436;
+        int24 tickLower = -6000;
+        int24 tickUpper = 6000;
+        uint128 liquidity = 1e18;
+
+        // Register with real position parameters
+        uint256 ilpnId = _registerWithPosition(alice, 500e6, entrySqrt, tickLower, tickUpper, liquidity);
+
+        vm.roll(block.number + 10);
+
+        // Compute expected IL
+        uint256 expectedIL = ILMath.computeIL(entrySqrt, exitSqrt, tickLower, tickUpper, liquidity);
+        assertGt(expectedIL, 0, "C09: IL must be non-zero for 20% price move");
+
+        // Expected payout: min(IL * coverage, maxPayout) * (1 - 2% fee)
+        // maxPayout = premium * 10 = 5000e6
+        uint256 maxPayout = 500e6 * 10;
+        uint256 coveredIL = expectedIL; // 100% tier
+        uint256 cappedIL = coveredIL > maxPayout ? maxPayout : coveredIL;
+        uint256 expectedPayout = cappedIL * 9800 / 10000; // 2% settlement fee
+
+        // Settle
+        uint256 balBefore = mockUSDC.balanceOf(alice);
+        vm.prank(alice);
+        core.settle(ilpnId, exitSqrt, "");
+        uint256 actualPayout = mockUSDC.balanceOf(alice) - balBefore;
+
+        console.log("C09 Computed IL:", expectedIL);
+        console.log("C09 MaxPayout cap:", maxPayout);
+        console.log("C09 Expected payout (after cap + fee):", expectedPayout);
+        console.log("C09 Actual payout:", actualPayout);
+
+        assertGt(actualPayout, 0, "C09: Payout must be >0");
+        // 0.1% tolerance
+        assertApproxEqRel(actualPayout, expectedPayout, 0.001e18, "C09: Payout matches expected within 0.1%");
     }
 }

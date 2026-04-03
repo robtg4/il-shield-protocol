@@ -34,7 +34,7 @@ interface IPoolModifyLiquidityTest {
         IPoolManager.PoolKey memory key,
         ModifyLiquidityParams memory params,
         bytes memory hookData
-    ) external returns (int256 delta0, int256 delta1);
+    ) external payable returns (int256);
 }
 
 // Minimal interface for PoolSwapTest
@@ -53,11 +53,90 @@ interface IPoolSwapTest {
         SwapParams memory params,
         TestSettings memory settings,
         bytes memory hookData
-    ) external returns (int256 delta0, int256 delta1);
+    ) external payable returns (int256);
 }
 
 /// @title Section 2: Real v4 Pool Interaction + Section 3/4 Edge Cases
 contract PhaseF_Round4 is ForkBase {
+
+    // ═══ Section F01: Real V4 Swap ═══
+
+    uint160 constant MIN_SQRT_RATIO = 4295128739;
+
+    function test_F01_realV4Swap() public {
+        // a) Deploy two mock ERC-20 tokens, sort by address
+        address tokenA = address(mockUSDC);
+        address tokenB = address(mockWETH);
+        (address token0, address token1) = tokenA < tokenB
+            ? (tokenA, tokenB)
+            : (tokenB, tokenA);
+
+        address swapTest = V4_POOL_SWAP_TEST;
+        address modLiqTest = 0x0C478023803a644c94c4CE1C1e7b9A087e411B0A;
+
+        // Approve both tokens to PoolSwapTest and PoolModifyLiquidityTest for max
+        mockUSDC.mint(address(this), 1000e18);
+        mockWETH.mint(address(this), 1000e18);
+        IERC20(token0).approve(swapTest, type(uint256).max);
+        IERC20(token1).approve(swapTest, type(uint256).max);
+        IERC20(token0).approve(modLiqTest, type(uint256).max);
+        IERC20(token1).approve(modLiqTest, type(uint256).max);
+
+        // b) Initialize pool via PoolManager
+        IPoolManager.PoolKey memory key = IPoolManager.PoolKey({
+            currency0: token0,
+            currency1: token1,
+            fee: 3000,
+            tickSpacing: 60,
+            hooks: address(0)
+        });
+        uint160 initSqrt = 79228162514264337593543950336; // 1:1 price
+
+        // initialize() can be called directly on v4 (no unlock needed)
+        int24 initTick = IPoolManager(V4_POOL_MANAGER).initialize(key, initSqrt);
+        console.log("F01 Pool initialized at tick:", uint256(int256(initTick)));
+
+        // Compute poolId = keccak256(abi.encode(key))
+        bytes32 poolId = keccak256(abi.encode(key));
+
+        // Read initial sqrtPriceX96 from StateView
+        (uint160 initialSqrt,,,) = IStateView(V4_STATE_VIEW).getSlot0(poolId);
+        emit log_named_uint("F01 Initial sqrtPriceX96", initialSqrt);
+        assertEq(initialSqrt, initSqrt, "F01: Initial price matches");
+
+        // c) Add liquidity via PoolModifyLiquidityTest
+        IPoolModifyLiquidityTest.ModifyLiquidityParams memory liqParams = IPoolModifyLiquidityTest.ModifyLiquidityParams({
+            tickLower: -600,
+            tickUpper: 600,
+            liquidityDelta: 1e18,
+            salt: bytes32(0)
+        });
+        IPoolModifyLiquidityTest(modLiqTest).modifyLiquidity(key, liqParams, "");
+        console.log("F01 Liquidity added: tickLower=-600, tickUpper=600, delta=1e18");
+
+        // d) Execute swap via PoolSwapTest: zeroForOne=true, exact output
+        IPoolSwapTest.SwapParams memory swapParams = IPoolSwapTest.SwapParams({
+            zeroForOne: true,
+            amountSpecified: -0.001e18, // exact output (negative = exact output in v4)
+            sqrtPriceLimitX96: MIN_SQRT_RATIO + 1
+        });
+        IPoolSwapTest.TestSettings memory settings = IPoolSwapTest.TestSettings({
+            takeClaims: false,
+            settleUsingBurn: false
+        });
+        IPoolSwapTest(swapTest).swap(key, swapParams, settings, "");
+        console.log("F01 Swap executed: zeroForOne=true, amountSpecified=-0.001e18");
+
+        // e) Read new sqrtPriceX96 from StateView — assert it differs
+        (uint160 newSqrt,,,) = IStateView(V4_STATE_VIEW).getSlot0(poolId);
+        emit log_named_uint("F01 Post-swap sqrtPriceX96", newSqrt);
+        assertTrue(newSqrt != initialSqrt, "F01: Price must change after swap");
+
+        // f) Compute IL using ILMath
+        uint256 il = ILMath.computeIL(uint160(initialSqrt), uint160(newSqrt), -600, 600, 1e18);
+        assertGt(il, 0, "F01: IL > 0 after real swap");
+        emit log_named_uint("F01 IL amount", il);
+    }
 
     // ═══ Section 2: Real v4 Pool ═══
 

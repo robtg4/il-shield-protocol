@@ -343,6 +343,199 @@ contract ILShieldCoreTest is Test {
         assertEq(registry.ownerOf(id2), alice, "4.4: Second position unaffected");
     }
 
+    // ═══ Round 5: Branch Coverage ═══
+
+    function test_R5_register_invalidCoverageTier() public {
+        vm.startPrank(alice);
+        usdc.approve(address(core), 500e6);
+        vm.expectRevert(ILShieldCore.InvalidCoverageTier.selector);
+        core.register(1, 3, 216_000, 500e6, address(0)); // tier 3 invalid
+        vm.stopPrank();
+    }
+
+    function test_R5_register_durationTooShort() public {
+        vm.startPrank(alice);
+        usdc.approve(address(core), 500e6);
+        vm.expectRevert(ILShieldCore.DurationTooShort.selector);
+        core.register(1, 0, 100, 500e6, address(0)); // 100 blocks < minCoverageDuration
+        vm.stopPrank();
+    }
+
+    function test_R5_register_zeroPremium() public {
+        vm.startPrank(alice);
+        vm.expectRevert(ILShieldCore.InsufficientPremium.selector);
+        core.register(1, 0, 216_000, 0, address(0)); // 0 premium
+        vm.stopPrank();
+    }
+
+    function test_R5_register_insufficientPremiumForRate() public {
+        // Configure pool with high premium rate (high vol, zero expected volume)
+        oracle.configurePool(bytes32(uint256(99)), address(feed), address(0), 0.70e18, 3000, 0);
+        oracle.setCLevel(1e18);
+
+        vm.startPrank(alice);
+        usdc.approve(address(core), 1);
+        // premiumRate will be > 0, so premiumDeposit < minPremium
+        vm.expectRevert(ILShieldCore.InsufficientPremium.selector);
+        core.register(99, 2, 216_000, 1, address(0)); // 1 wei < rate * duration
+        vm.stopPrank();
+    }
+
+    function test_R5_topUpPremium_basic() public {
+        uint256 id = _registerAs(alice, 500e6);
+
+        // Top up
+        usdc.mint(alice, 100e6);
+        vm.startPrank(alice);
+        usdc.approve(address(core), 100e6);
+        core.topUpPremium(id, 100e6);
+        vm.stopPrank();
+
+        (,,,,,,,,uint256 premBal,,,,,,) = core.positions(id);
+        assertEq(premBal, 600e6, "R5: Premium balance should be 600");
+    }
+
+    function test_R5_topUpPremium_settledReverts() public {
+        core.setWarmingPeriodBlocks(0);
+        core.setFullCoverageRampBlocks(1);
+        uint256 id = _registerAs(alice, 500e6);
+        vm.roll(block.number + 10);
+        vm.prank(alice);
+        core.settle(id, 79228162514264337593543950336, ""); // settle with no IL
+
+        // topUp after settlement
+        usdc.mint(alice, 100e6);
+        vm.startPrank(alice);
+        usdc.approve(address(core), 100e6);
+        vm.expectRevert(ILShieldCore.PositionAlreadySettled.selector);
+        core.topUpPremium(id, 100e6);
+        vm.stopPrank();
+    }
+
+    function test_R5_cancelProtection_settledReverts() public {
+        core.setWarmingPeriodBlocks(0);
+        core.setFullCoverageRampBlocks(1);
+        uint256 id = _registerAs(alice, 500e6);
+        vm.roll(block.number + 10);
+        vm.prank(alice);
+        core.settle(id, 79228162514264337593543950336, "");
+
+        vm.prank(alice);
+        vm.expectRevert(ILShieldCore.PositionAlreadySettled.selector);
+        core.cancelProtection(id);
+    }
+
+    function test_R5_cancelProtection_wrongOwner() public {
+        uint256 id = _registerAs(alice, 500e6);
+
+        vm.prank(address(0xBEEF));
+        vm.expectRevert(ILShieldCore.NotILPNOwner.selector);
+        core.cancelProtection(id);
+    }
+
+    function test_R5_cancelProtection_withPartialStream() public {
+        core.setWarmingPeriodBlocks(0);
+        core.setFullCoverageRampBlocks(1);
+
+        // Configure pool for non-zero premium rate
+        oracle.configurePool(bytes32(uint256(55)), address(feed), address(0), 0.50e18, 3000, 0);
+        oracle.setCLevel(1e15);
+
+        vm.startPrank(alice);
+        usdc.approve(address(core), 5_000_000e6);
+        uint256 id = core.register(55, 0, 50_400, 5_000_000e6, address(0));
+        vm.stopPrank();
+
+        // Advance some blocks so premium accrues
+        vm.roll(block.number + 1000);
+
+        uint256 balBefore = usdc.balanceOf(alice);
+        vm.prank(alice);
+        core.cancelProtection(id);
+        uint256 refund = usdc.balanceOf(alice) - balBefore;
+
+        // Should get back less than deposited (some was streamed)
+        assertGt(refund, 0, "R5: Should get a refund");
+        assertLe(refund, 5_000_000e6, "R5: Refund <= deposit");
+        console.log("R5 Cancel refund:", refund);
+    }
+
+    function test_R5_settle_juniorOverflowToSenior() public {
+        core.setWarmingPeriodBlocks(0);
+        core.setFullCoverageRampBlocks(1);
+
+        uint160 entry = 79228162514264337593543950336;
+        uint160 exit40pct = 94473795017117205112252740403;
+
+        // Register with huge position to cause IL > junior balance
+        uint256 id = _registerAs(alice, 500e6);
+        _injectPosition(id, entry, -6000, 6000, 1e15); // very high liquidity
+        _setMaxPayout(id, type(uint256).max);
+
+        vm.roll(block.number + 10);
+
+        uint256 juniorBefore = juniorVault.totalAssets();
+        uint256 seniorBefore = seniorVault.totalAssets();
+        uint256 bal = usdc.balanceOf(alice);
+        vm.prank(alice);
+        core.settle(id, exit40pct, "");
+        uint256 payout = usdc.balanceOf(alice) - bal;
+
+        assertGt(payout, juniorBefore, "R5: Payout > junior balance (overflow to senior)");
+        assertEq(juniorVault.totalAssets(), 0, "R5: Junior fully drained");
+        assertLt(seniorVault.totalAssets(), seniorBefore, "R5: Senior drawn down");
+        console.log("R5 Junior overflow: payout=", payout, "junior was=", juniorBefore);
+    }
+
+    function test_R5_processStreaming_sameBlock() public {
+        core.setWarmingPeriodBlocks(0);
+        core.setFullCoverageRampBlocks(1);
+        uint256 id = _registerAs(alice, 500e6);
+
+        // Process streaming same block as registration → blocksElapsed=0
+        uint256[] memory ids = new uint256[](1);
+        ids[0] = id;
+        core.processStreaming(ids); // should not revert, just skip
+    }
+
+    function test_R5_distributePremium_noReferrer() public {
+        core.setWarmingPeriodBlocks(0);
+        core.setFullCoverageRampBlocks(1);
+
+        // Configure pool with non-zero premium
+        oracle.configurePool(bytes32(uint256(88)), address(feed), address(0), 0.50e18, 3000, 0);
+        oracle.setCLevel(1e15);
+
+        // Register with NO referrer
+        vm.startPrank(alice);
+        usdc.approve(address(core), 5_000_000e6);
+        uint256 id = core.register(88, 0, 50_400, 5_000_000e6, address(0));
+        vm.stopPrank();
+
+        vm.roll(block.number + 1000);
+
+        uint256 treasuryBefore = usdc.balanceOf(treasury);
+        uint256[] memory ids = new uint256[](1);
+        ids[0] = id;
+        core.processStreaming(ids);
+        uint256 treasuryAfter = usdc.balanceOf(treasury);
+
+        // Treasury gets its 10% + the 5% referral share = 15%
+        assertGt(treasuryAfter - treasuryBefore, 0, "R5: Treasury received premium + referral share");
+        console.log("R5 Treasury (no referrer):", treasuryAfter - treasuryBefore);
+    }
+
+    function test_R5_setPremiumShares_invalidSum() public {
+        vm.expectRevert(ILShieldCore.InvalidShares.selector);
+        core.setPremiumShares(5000, 3000, 1000, 500); // sum = 9500 != 10000
+    }
+
+    function test_R5_setPremiumShares_valid() public {
+        core.setPremiumShares(6000, 2000, 1500, 500); // sum = 10000
+        assertEq(core.seniorShare(), 6000);
+        assertEq(core.juniorShare(), 2000);
+    }
+
     // ═══ 3.4 Referral Fee Accuracy ═══
 
     function test_3_4_referralFeeAccuracy() public {

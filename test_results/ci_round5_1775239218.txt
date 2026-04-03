@@ -1,0 +1,217 @@
+Compiling 14 files with Solc 0.8.26
+Solc 0.8.26 finished in 68.41s
+Compiler run successful!
+
+Ran 7 tests for test/unit/ILPNRegistry.t.sol:ILPNRegistryTest
+[PASS] test_approve_thenTransferFrom_reverts() (gas: 92719)
+[PASS] test_burn_byCoreRole_succeeds() (gas: 57797)
+[PASS] test_burn_byNonCoreRole_reverts() (gas: 69019)
+[PASS] test_mint_byCoreRole_succeeds() (gas: 62287)
+[PASS] test_mint_byNonCoreRole_reverts() (gas: 16220)
+[PASS] test_safeTransferFrom_reverts() (gas: 67197)
+[PASS] test_transferFrom_reverts() (gas: 66556)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 1.90ms (731.39µs CPU time)
+
+Ran 18 tests for test/adversarial/AccessControlAttack.t.sol:AccessControlAttackTest
+[PASS] test_attacker_cannot_pause_core() (gas: 14284)
+[PASS] test_attacker_cannot_pause_juniorVault() (gas: 14422)
+[PASS] test_attacker_cannot_pause_seniorVault() (gas: 14840)
+[PASS] test_nonAdmin_cannot_setPremiumShares() (gas: 13972)
+[PASS] test_nonAdmin_cannot_setSettlementFeeRate() (gas: 14299)
+[PASS] test_nonAdmin_cannot_setTreasury() (gas: 15019)
+[PASS] test_nonAdmin_cannot_setWarmingPeriod() (gas: 14077)
+[PASS] test_nonCore_cannot_burn_ilpn() (gas: 14254)
+[PASS] test_nonCore_cannot_mint_ilpn() (gas: 14306)
+[PASS] test_nonCore_cannot_receivePremium_junior() (gas: 14406)
+[PASS] test_nonCore_cannot_receivePremium_senior() (gas: 14494)
+[PASS] test_nonCore_cannot_withdrawForClaim_junior() (gas: 14593)
+[PASS] test_nonCore_cannot_withdrawForClaim_senior() (gas: 15140)
+[PASS] test_oracle_updateTWAP_nonKeeper_reverts() (gas: 13928)
+[PASS] test_oracle_updateVolatility_nonKeeper_reverts() (gas: 14230)
+[PASS] test_processStreaming_isPublic() (gas: 11897)
+[PASS] test_selfGrant_coreRole_fails() (gas: 16557)
+[PASS] test_selfGrant_governanceRole_fails() (gas: 16824)
+Suite result: ok. 18 passed; 0 failed; 0 skipped; finished in 2.66ms (750.32µs CPU time)
+
+Ran 1 test for test/integration/TrancheWaterfall.t.sol:TrancheWaterfallTest
+[PASS] test_waterfall_four_claims() (gas: 121847)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 2.75ms (575.16µs CPU time)
+
+Ran 5 tests for test/adversarial/ReentrancyAttack.t.sol:ReentrancyAttackTest
+[PASS] test_flashloan_register_settle_sameblock() (gas: 391256)
+[PASS] test_flashloan_vault_deposit_withdraw_blocked() (gas: 116000)
+[PASS] test_reentrancy_processStreaming_safe() (gas: 432162)
+[PASS] test_reentrancy_settle_claim() (gas: 395537)
+[PASS] test_reentrancy_withdrawForClaim_blocked() (gas: 78078)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 4.80ms (2.09ms CPU time)
+
+Ran 5 tests for test/integration/Adversarial.t.sol:AdversarialTest
+[PASS] test_cancelThenSettle_reverts() (gas: 354149)
+[PASS] test_doubleClaim_reverts() (gas: 379566)
+[PASS] test_nonOwnerSettle_reverts() (gas: 410379)
+[PASS] test_premiumExhaustion_stopsCoverage() (gas: 502126)
+[PASS] test_settleExpiredProtection_succeeds() (gas: 377892)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 5.91ms (2.20ms CPU time)
+
+Ran 7 tests for test/unit/JuniorVault.t.sol:JuniorVaultTest
+[PASS] test_deposit_and_redeem() (gas: 324937)
+[PASS] test_receivePremium_access_control() (gas: 14278)
+[PASS] test_sjRatio_blocks_withdrawal() (gas: 616438)
+[PASS] test_withdrawForClaim_access_control() (gas: 14795)
+[PASS] test_withdrawForClaim_partial() (gas: 313623)
+[PASS] test_withdraw_afterLock_succeeds() (gas: 323336)
+[PASS] test_withdraw_beforeLock_reverts() (gas: 288556)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 6.91ms (5.15ms CPU time)
+
+Ran 1 test for test/integration/FullLifecycle.t.sol:FullLifecycleTest
+[PASS] test_fullLifecycle() (gas: 513576)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 3.02ms (649.73µs CPU time)
+
+Ran 9 tests for test/GasBenchmark.t.sol:GasBenchmarkTest
+[PASS] test_gas_juniorDeposit() (gas: 99963)
+[PASS] test_gas_juniorWithdrawForClaim() (gas: 61194)
+[PASS] test_gas_processStreaming_batch10() (gas: 3362403)
+[PASS] test_gas_processStreaming_single() (gas: 514513)
+[PASS] test_gas_register() (gas: 402252)
+[PASS] test_gas_seniorDeposit() (gas: 99747)
+[PASS] test_gas_seniorWithdraw() (gas: 123293)
+[PASS] test_gas_settle_noPayout() (gas: 374867)
+[PASS] test_gas_settle_withPayout() (gas: 374990)
+Suite result: ok. 9 passed; 0 failed; 0 skipped; finished in 8.60ms (4.95ms CPU time)
+
+Ran 23 tests for test/unit/PricingOracle.t.sol:PricingOracleTest
+[PASS] test_computePremiumRate_returnsValue() (gas: 30649)
+[PASS] test_freshPrice_succeeds() (gas: 25010)
+[PASS] test_max3_floorWins_aGeBButLtC() (gas: 35477)
+[PASS] test_max3_floorWins_overBoth() (gas: 35443)
+[PASS] test_max3_impliedWins() (gas: 35741)
+[PASS] test_max3_realizedWins_overFloor() (gas: 35887)
+[PASS] test_negativePrice_reverts() (gas: 24479)
+[PASS] test_setCLevel() (gas: 14945)
+[PASS] test_setUtilization_byKeeper() (gas: 36689)
+[PASS] test_setUtilization_byNonKeeper_reverts() (gas: 14252)
+[PASS] test_setVolFloor() (gas: 14252)
+[PASS] test_stalePrice_reverts() (gas: 24434)
+[PASS] test_twapUpdate_byKeeper_succeeds() (gas: 36966)
+[PASS] test_twapUpdate_byNonKeeper_reverts() (gas: 14298)
+[PASS] test_unconfiguredPool_computePremium_reverts() (gas: 11844)
+[PASS] test_unconfiguredPool_reverts() (gas: 11181)
+[PASS] test_volUpdate_byKeeper_succeeds() (gas: 35719)
+[PASS] test_volUpdate_byNonKeeper_reverts() (gas: 14138)
+[PASS] test_volatility_floorWins() (gas: 35575)
+[PASS] test_volatility_maxOfThree() (gas: 35491)
+[PASS] test_volatility_stale_fallback() (gas: 36439)
+[PASS] test_zeroAddressFeed_reverts() (gas: 11512)
+[PASS] test_zeroPrice_reverts() (gas: 20336)
+Suite result: ok. 23 passed; 0 failed; 0 skipped; finished in 1.89ms (1.19ms CPU time)
+
+Ran 25 tests for test/unit/ILShieldCore.t.sol:ILShieldCoreTest
+[PASS] test_1_1a_warmingRamp_zeroBlocks_zeroPayout() (gas: 401682)
+[PASS] test_1_1b_warmingRamp_atStart_zeroPayout() (gas: 369303)
+[PASS] test_1_1c_warmingRamp_halfRamp_halfPayout() (gas: 402334)
+[PASS] test_1_1d_warmingRamp_fullRamp_fullPayout() (gas: 401493)
+[PASS] test_1_5a_fee_on_1wei_payout() (gas: 392824)
+[PASS] test_1_5b_fee_on_50wei_payout() (gas: 392472)
+[PASS] test_1_6_coverageTiers_50_75_100_ratio() (gas: 894015)
+[PASS] test_1_7_feeRateChange_usesCurrentRate() (gas: 406311)
+[PASS] test_3_4_referralFeeAccuracy() (gas: 1052317)
+[PASS] test_4_3_sameBlock_registerSettle() (gas: 400802)
+[PASS] test_4_4_positionId_uniqueness() (gas: 626648)
+[PASS] test_R5_cancelProtection_settledReverts() (gas: 368160)
+[PASS] test_R5_cancelProtection_withPartialStream() (gas: 474823)
+[PASS] test_R5_cancelProtection_wrongOwner() (gas: 385104)
+[PASS] test_R5_distributePremium_noReferrer() (gas: 640889)
+[PASS] test_R5_processStreaming_sameBlock() (gas: 390609)
+[PASS] test_R5_register_durationTooShort() (gas: 51792)
+[PASS] test_R5_register_insufficientPremiumForRate() (gas: 256748)
+[PASS] test_R5_register_invalidCoverageTier() (gas: 49987)
+[PASS] test_R5_register_zeroPremium() (gas: 22584)
+[PASS] test_R5_setPremiumShares_invalidSum() (gas: 11537)
+[PASS] test_R5_setPremiumShares_valid() (gas: 28679)
+[PASS] test_R5_settle_juniorOverflowToSenior() (gas: 422651)
+[PASS] test_R5_topUpPremium_basic() (gas: 404097)
+[PASS] test_R5_topUpPremium_settledReverts() (gas: 394021)
+Suite result: ok. 25 passed; 0 failed; 0 skipped; finished in 9.34ms (9.36ms CPU time)
+
+Ran 9 tests for test/adversarial/OracleAttack.t.sol:OracleAttackTest
+[PASS] test_doubleSettle_afterBurn() (gas: 397798)
+[PASS] test_negativeOraclePrice_reverts() (gas: 446881)
+[PASS] test_settle_otherUsersPosition() (gas: 433658)
+[PASS] test_settlement_withExtremeHighPrice() (gas: 391427)
+[PASS] test_settlement_withExtremeMinPrice() (gas: 391452)
+[PASS] test_staleOracle_reverts() (gas: 441005)
+[PASS] test_twapDivergence_blocksSettlement() (gas: 480982)
+[PASS] test_twapZero_bypasses_check() (gas: 392039)
+[PASS] test_zeroOraclePrice_reverts() (gas: 442166)
+Suite result: ok. 9 passed; 0 failed; 0 skipped; finished in 9.96ms (3.05ms CPU time)
+
+Ran 7 tests for test/adversarial/EconomicAttack.t.sol:EconomicAttackTest
+[PASS] test_cancelAndReregister_noExploit() (gas: 1351981)
+[PASS] test_dustDeposit_inflationAttack() (gas: 247410)
+[PASS] test_juniorWithdrawal_grief_blocked() (gas: 278335)
+[PASS] test_manyPositions_gasGrief() (gas: 12765479)
+[PASS] test_maxPayout_capped_at_vault() (gas: 640439)
+[PASS] test_premiumDrain_adverseSelection() (gas: 368303)
+[PASS] test_zeroLiquidityPosition() (gas: 406293)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 9.08ms (9.91ms CPU time)
+
+Ran 4 tests for test/unit/PremiumMath.t.sol:PremiumMathTest
+[PASS] test_fuzz_premium_equals_gross_when_no_fees(uint256,uint256) (runs: 10000, μ: 7473, ~: 7557)
+[PASS] test_fuzz_premium_monotonic_in_concentration(uint256,uint256) (runs: 10000, μ: 5022, ~: 5308)
+[PASS] test_fuzz_premium_monotonic_in_volatility(uint256,uint256) (runs: 10000, μ: 4684, ~: 5234)
+[PASS] test_fuzz_premium_zero_when_fees_cover_il(uint256,uint256) (runs: 10000, μ: 1800, ~: 1834)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 435.35ms (993.26ms CPU time)
+
+Ran 1 test for test/invariant/VaultSolvency.t.sol:VaultSolvencyTest
+[PASS] invariant_solvency() (runs: 1000, calls: 50000, reverts: 0)
+
+╭--------------+------------------------+-------+---------+----------╮
+| Contract     | Selector               | Calls | Reverts | Discards |
++====================================================================+
+| VaultHandler | depositJunior          | 6144  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | depositSenior          | 6190  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | receivePremiumJunior   | 6309  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | receivePremiumSenior   | 6233  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | withdrawForClaimJunior | 6247  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | withdrawForClaimSenior | 6303  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | withdrawJunior         | 6248  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | withdrawSenior         | 6326  | 0       | 0        |
+╰--------------+------------------------+-------+---------+----------╯
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 7.96s (7.96s CPU time)
+
+Ran 15 tests for test/unit/SeniorVault.t.sol:SeniorVaultTest
+[PASS] test_deposit_and_redeem() (gas: 319505)
+[PASS] test_emergencyWithdraw_penalty() (gas: 313306)
+[PASS] test_instant_withdrawal_low_utilization() (gas: 318707)
+[PASS] test_previewDeposit_accurate() (gas: 285243)
+[PASS] test_receivePremium_access_control() (gas: 14466)
+[PASS] test_receivePremium_increases_assets() (gas: 469490)
+[PASS] test_redeem_before_lock_reverts() (gas: 288769)
+[PASS] test_share_price_after_large_claim() (gas: 578356)
+[PASS] test_utilizationBps_zero_assets() (gas: 11952)
+[PASS] test_utilization_throttling_above_80pct() (gas: 351516)
+[PASS] test_utilization_throttling_slow_queue_path() (gas: 353378)
+[PASS] test_withdrawForClaim_access_control() (gas: 15024)
+[PASS] test_withdraw_afterLock_succeeds() (gas: 319018)
+[PASS] test_withdraw_beforeLock_reverts() (gas: 288858)
+[PASS] test_withdrawal_queue_with_persisted_entry() (gas: 353313)
+Suite result: ok. 15 passed; 0 failed; 0 skipped; finished in 186.80s (10.73ms CPU time)
+
+Ran 6 tests for test/unit/ILMath.t.sol:ILMathTest
+[PASS] test_computeIL_priceDoubles() (gas: 20994)
+[PASS] test_computeIL_priceExitsRangeAbove() (gas: 20084)
+[PASS] test_computeIL_priceExitsRangeBelow() (gas: 20603)
+[PASS] test_computeIL_priceHalves() (gas: 21151)
+[PASS] test_computeIL_zeroPriceChange() (gas: 7228)
+[PASS] test_fuzz_computeIL_matchesPythonReference(uint160,uint160,int24,int24,uint128) (runs: 10000, μ: 25645, ~: 25654)
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 186.80s (186.88s CPU time)
+
+Ran 16 test suites in 186.80s (382.07s CPU time): 143 tests passed, 0 failed, 0 skipped (143 total tests)

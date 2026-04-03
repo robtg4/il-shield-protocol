@@ -1,0 +1,327 @@
+Warning: `--ir-minimum` enables `viaIR` with minimum optimization, which can result in inaccurate source mappings.
+Only use this flag as a workaround if you are experiencing "stack too deep" errors.
+Note that `viaIR` is production ready since Solidity 0.8.13 and above.
+See more: https://github.com/foundry-rs/foundry/issues/3357
+Compiling 129 files with Solc 0.8.26
+Solc 0.8.26 finished in 65.14s
+Compiler run successful with warnings:
+Warning (2072): Unused local variable.
+  --> script/DeployUnichain.s.sol:83:9:
+   |
+83 |         bytes32 GOVERNANCE_ROLE = keccak256("GOVERNANCE_ROLE");
+   |         ^^^^^^^^^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/fork/PhaseD_Adversarial.t.sol:101:9:
+    |
+101 |         bytes32 adminRole = 0x00;
+    |         ^^^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/fork/PhaseF_Round4.t.sol:243:9:
+    |
+243 |         uint256 juniorBefore = juniorVault.totalAssets();
+    |         ^^^^^^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/fork/PhaseF_Round4.t.sol:248:13:
+    |
+248 |             uint256 juniorPre = juniorVault.totalAssets();
+    |             ^^^^^^^^^^^^^^^^^
+
+Warning (2072): Unused local variable.
+   --> test/unit/SeniorVault.t.sol:263:9:
+    |
+263 |         uint256 bobShares = vault.deposit(100_000e6, bob);
+    |         ^^^^^^^^^^^^^^^^^
+
+Analysing contracts...
+Running tests...
+
+Ran 7 tests for test/unit/ILPNRegistry.t.sol:ILPNRegistryTest
+[PASS] test_approve_thenTransferFrom_reverts() (gas: 108291)
+[PASS] test_burn_byCoreRole_succeeds() (gas: 75273)
+[PASS] test_burn_byNonCoreRole_reverts() (gas: 79913)
+[PASS] test_mint_byCoreRole_succeeds() (gas: 74182)
+[PASS] test_mint_byNonCoreRole_reverts() (gas: 20203)
+[PASS] test_safeTransferFrom_reverts() (gas: 78950)
+[PASS] test_transferFrom_reverts() (gas: 77985)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 4.69ms (2.54ms CPU time)
+
+Ran 23 tests for test/unit/PricingOracle.t.sol:PricingOracleTest
+[PASS] test_computePremiumRate_returnsValue() (gas: 55122)
+[PASS] test_freshPrice_succeeds() (gas: 67767)
+[PASS] test_max3_floorWins_aGeBButLtC() (gas: 43540)
+[PASS] test_max3_floorWins_overBoth() (gas: 43522)
+[PASS] test_max3_impliedWins() (gas: 43861)
+[PASS] test_max3_realizedWins_overFloor() (gas: 43994)
+[PASS] test_negativePrice_reverts() (gas: 31394)
+[PASS] test_setCLevel() (gas: 18388)
+[PASS] test_setUtilization_byKeeper() (gas: 40984)
+[PASS] test_setUtilization_byNonKeeper_reverts() (gas: 17335)
+[PASS] test_setVolFloor() (gas: 17256)
+[PASS] test_stalePrice_reverts() (gas: 30874)
+[PASS] test_twapUpdate_byKeeper_succeeds() (gas: 42422)
+[PASS] test_twapUpdate_byNonKeeper_reverts() (gas: 18399)
+[PASS] test_unconfiguredPool_computePremium_reverts() (gas: 15283)
+[PASS] test_unconfiguredPool_reverts() (gas: 13793)
+[PASS] test_volUpdate_byKeeper_succeeds() (gas: 43815)
+[PASS] test_volUpdate_byNonKeeper_reverts() (gas: 18508)
+[PASS] test_volatility_floorWins() (gas: 43660)
+[PASS] test_volatility_maxOfThree() (gas: 43580)
+[PASS] test_volatility_stale_fallback() (gas: 45630)
+[PASS] test_zeroAddressFeed_reverts() (gas: 16075)
+[PASS] test_zeroPrice_reverts() (gas: 27281)
+Suite result: ok. 23 passed; 0 failed; 0 skipped; finished in 12.86ms (10.90ms CPU time)
+
+Ran 7 tests for test/unit/JuniorVault.t.sol:JuniorVaultTest
+[PASS] test_deposit_and_redeem() (gas: 500384)
+[PASS] test_receivePremium_access_control() (gas: 17832)
+[PASS] test_sjRatio_blocks_withdrawal() (gas: 963309)
+[PASS] test_withdrawForClaim_access_control() (gas: 18734)
+[PASS] test_withdrawForClaim_partial() (gas: 477680)
+[PASS] test_withdraw_afterLock_succeeds() (gas: 497076)
+[PASS] test_withdraw_beforeLock_reverts() (gas: 440384)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 25.77ms (19.03ms CPU time)
+
+Ran 5 tests for test/adversarial/ReentrancyAttack.t.sol:ReentrancyAttackTest
+[PASS] test_flashloan_register_settle_sameblock() (gas: 574348)
+[PASS] test_flashloan_vault_deposit_withdraw_blocked() (gas: 142028)
+[PASS] test_reentrancy_processStreaming_safe() (gas: 511192)
+[PASS] test_reentrancy_settle_claim() (gas: 579508)
+[PASS] test_reentrancy_withdrawForClaim_blocked() (gas: 103679)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 23.10ms (13.29ms CPU time)
+
+Ran 5 tests for test/integration/Adversarial.t.sol:AdversarialTest
+[PASS] test_cancelThenSettle_reverts() (gas: 425037)
+[PASS] test_doubleClaim_reverts() (gas: 554875)
+[PASS] test_nonOwnerSettle_reverts() (gas: 481668)
+[PASS] test_premiumExhaustion_stopsCoverage() (gas: 689690)
+[PASS] test_settleExpiredProtection_succeeds() (gas: 555601)
+Suite result: ok. 5 passed; 0 failed; 0 skipped; finished in 32.29ms (26.52ms CPU time)
+
+Ran 9 tests for test/GasBenchmark.t.sol:GasBenchmarkTest
+[PASS] test_gas_juniorDeposit() (gas: 128409)
+[PASS] test_gas_juniorWithdrawForClaim() (gas: 76841)
+[PASS] test_gas_processStreaming_batch10() (gas: 4459979)
+[PASS] test_gas_processStreaming_single() (gas: 625977)
+[PASS] test_gas_register() (gas: 468820)
+[PASS] test_gas_seniorDeposit() (gas: 128182)
+[PASS] test_gas_seniorWithdraw() (gas: 177722)
+[PASS] test_gas_settle_noPayout() (gas: 545617)
+[PASS] test_gas_settle_withPayout() (gas: 545778)
+Suite result: ok. 9 passed; 0 failed; 0 skipped; finished in 34.35ms (36.89ms CPU time)
+
+Ran 1 test for test/integration/TrancheWaterfall.t.sol:TrancheWaterfallTest
+[PASS] test_waterfall_four_claims() (gas: 243486)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 7.47ms (2.10ms CPU time)
+
+Ran 1 test for test/integration/FullLifecycle.t.sol:FullLifecycleTest
+[PASS] test_fullLifecycle() (gas: 756338)
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 13.48ms (4.70ms CPU time)
+
+Ran 7 tests for test/adversarial/EconomicAttack.t.sol:EconomicAttackTest
+[PASS] test_cancelAndReregister_noExploit() (gas: 1679431)
+[PASS] test_dustDeposit_inflationAttack() (gas: 303114)
+[PASS] test_juniorWithdrawal_grief_blocked() (gas: 339735)
+[PASS] test_manyPositions_gasGrief() (gas: 16034325)
+[PASS] test_maxPayout_capped_at_vault() (gas: 870575)
+[PASS] test_premiumDrain_adverseSelection() (gas: 443644)
+[PASS] test_zeroLiquidityPosition() (gas: 586087)
+Suite result: ok. 7 passed; 0 failed; 0 skipped; finished in 52.19ms (55.80ms CPU time)
+
+Ran 25 tests for test/unit/ILShieldCore.t.sol:ILShieldCoreTest
+[PASS] test_1_1a_warmingRamp_zeroBlocks_zeroPayout() (gas: 486453)
+[PASS] test_1_1b_warmingRamp_atStart_zeroPayout() (gas: 553117)
+[PASS] test_1_1c_warmingRamp_halfRamp_halfPayout() (gas: 657880)
+[PASS] test_1_1d_warmingRamp_fullRamp_fullPayout() (gas: 655092)
+[PASS] test_1_5a_fee_on_1wei_payout() (gas: 594160)
+[PASS] test_1_5b_fee_on_50wei_payout() (gas: 593808)
+[PASS] test_1_6_coverageTiers_50_75_100_ratio() (gas: 1512072)
+[PASS] test_1_7_feeRateChange_usesCurrentRate() (gas: 661303)
+[PASS] test_3_4_referralFeeAccuracy() (gas: 1292413)
+[PASS] test_4_3_sameBlock_registerSettle() (gas: 475963)
+[PASS] test_4_4_positionId_uniqueness() (gas: 876973)
+[PASS] test_R5_cancelProtection_settledReverts() (gas: 539184)
+[PASS] test_R5_cancelProtection_withPartialStream() (gas: 577287)
+[PASS] test_R5_cancelProtection_wrongOwner() (gas: 455680)
+[PASS] test_R5_distributePremium_noReferrer() (gas: 766699)
+[PASS] test_R5_processStreaming_sameBlock() (gas: 464362)
+[PASS] test_R5_register_durationTooShort() (gas: 61232)
+[PASS] test_R5_register_insufficientPremiumForRate() (gas: 315327)
+[PASS] test_R5_register_invalidCoverageTier() (gas: 59165)
+[PASS] test_R5_register_zeroPremium() (gas: 28472)
+[PASS] test_R5_setPremiumShares_invalidSum() (gas: 15372)
+[PASS] test_R5_setPremiumShares_valid() (gas: 35529)
+[PASS] test_R5_settle_juniorOverflowToSenior() (gas: 646987)
+[PASS] test_R5_topUpPremium_basic() (gas: 497750)
+[PASS] test_R5_topUpPremium_settledReverts() (gas: 579907)
+Suite result: ok. 25 passed; 0 failed; 0 skipped; finished in 60.26ms (106.69ms CPU time)
+
+Ran 15 tests for test/unit/SeniorVault.t.sol:SeniorVaultTest
+[PASS] test_deposit_and_redeem() (gas: 489556)
+[PASS] test_emergencyWithdraw_penalty() (gas: 478460)
+[PASS] test_instant_withdrawal_low_utilization() (gas: 489939)
+[PASS] test_previewDeposit_accurate() (gas: 438166)
+[PASS] test_receivePremium_access_control() (gas: 18062)
+[PASS] test_receivePremium_increases_assets() (gas: 762829)
+[PASS] test_redeem_before_lock_reverts() (gas: 440607)
+[PASS] test_share_price_after_large_claim() (gas: 907427)
+[PASS] test_utilizationBps_zero_assets() (gas: 15794)
+[PASS] test_utilization_throttling_above_80pct() (gas: 544583)
+[PASS] test_utilization_throttling_slow_queue_path() (gas: 552711)
+[PASS] test_withdrawForClaim_access_control() (gas: 19010)
+[PASS] test_withdraw_afterLock_succeeds() (gas: 490586)
+[PASS] test_withdraw_beforeLock_reverts() (gas: 440715)
+[PASS] test_withdrawal_queue_with_persisted_entry() (gas: 552489)
+Suite result: ok. 15 passed; 0 failed; 0 skipped; finished in 1.29s (52.76ms CPU time)
+
+Ran 4 tests for test/unit/PremiumMath.t.sol:PremiumMathTest
+[PASS] test_fuzz_premium_equals_gross_when_no_fees(uint256,uint256) (runs: 10000, μ: 25859, ~: 26372)
+[PASS] test_fuzz_premium_monotonic_in_concentration(uint256,uint256) (runs: 10000, μ: 22652, ~: 23832)
+[PASS] test_fuzz_premium_monotonic_in_volatility(uint256,uint256) (runs: 10000, μ: 21514, ~: 23757)
+[PASS] test_fuzz_premium_zero_when_fees_cover_il(uint256,uint256) (runs: 10000, μ: 9921, ~: 10134)
+Suite result: ok. 4 passed; 0 failed; 0 skipped; finished in 2.71s (6.00s CPU time)
+
+Ran 1 test for test/invariant/VaultSolvency.t.sol:VaultSolvencyTest
+[PASS] invariant_solvency() (runs: 1000, calls: 50000, reverts: 0)
+
+╭--------------+------------------------+-------+---------+----------╮
+| Contract     | Selector               | Calls | Reverts | Discards |
++====================================================================+
+| VaultHandler | depositJunior          | 6247  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | depositSenior          | 6266  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | receivePremiumJunior   | 6177  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | receivePremiumSenior   | 6247  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | withdrawForClaimJunior | 6303  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | withdrawForClaimSenior | 6185  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | withdrawJunior         | 6316  | 0       | 0        |
+|--------------+------------------------+-------+---------+----------|
+| VaultHandler | withdrawSenior         | 6259  | 0       | 0        |
+╰--------------+------------------------+-------+---------+----------╯
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 23.61s (23.60s CPU time)
+
+Ran 18 tests for test/adversarial/AccessControlAttack.t.sol:AccessControlAttackTest
+[PASS] test_attacker_cannot_pause_core() (gas: 17594)
+[PASS] test_attacker_cannot_pause_juniorVault() (gas: 17755)
+[PASS] test_attacker_cannot_pause_seniorVault() (gas: 18192)
+[PASS] test_nonAdmin_cannot_setPremiumShares() (gas: 18384)
+[PASS] test_nonAdmin_cannot_setSettlementFeeRate() (gas: 17901)
+[PASS] test_nonAdmin_cannot_setTreasury() (gas: 18752)
+[PASS] test_nonAdmin_cannot_setWarmingPeriod() (gas: 17671)
+[PASS] test_nonCore_cannot_burn_ilpn() (gas: 17855)
+[PASS] test_nonCore_cannot_mint_ilpn() (gas: 18271)
+[PASS] test_nonCore_cannot_receivePremium_junior() (gas: 18016)
+[PASS] test_nonCore_cannot_receivePremium_senior() (gas: 18108)
+[PASS] test_nonCore_cannot_withdrawForClaim_junior() (gas: 18573)
+[PASS] test_nonCore_cannot_withdrawForClaim_senior() (gas: 19148)
+[PASS] test_oracle_updateTWAP_nonKeeper_reverts() (gas: 17957)
+[PASS] test_oracle_updateVolatility_nonKeeper_reverts() (gas: 18549)
+[PASS] test_processStreaming_isPublic() (gas: 14494)
+[PASS] test_selfGrant_coreRole_fails() (gas: 20736)
+[PASS] test_selfGrant_governanceRole_fails() (gas: 21011)
+Suite result: ok. 18 passed; 0 failed; 0 skipped; finished in 191.00s (32.51ms CPU time)
+
+Ran 6 tests for test/unit/ILMath.t.sol:ILMathTest
+[PASS] test_computeIL_priceDoubles() (gas: 83801)
+[PASS] test_computeIL_priceExitsRangeAbove() (gas: 79119)
+[PASS] test_computeIL_priceExitsRangeBelow() (gas: 80708)
+[PASS] test_computeIL_priceHalves() (gas: 83939)
+[PASS] test_computeIL_zeroPriceChange() (gas: 55946)
+[PASS] test_fuzz_computeIL_matchesPythonReference(uint160,uint160,int24,int24,uint128) (runs: 10000, μ: 109456, ~: 109604)
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 191.00s (191.08s CPU time)
+
+Ran 9 tests for test/adversarial/OracleAttack.t.sol:OracleAttackTest
+[PASS] test_doubleSettle_afterBurn() (gas: 581951)
+[PASS] test_negativeOraclePrice_reverts() (gas: 529211)
+[PASS] test_settle_otherUsersPosition() (gas: 509312)
+[PASS] test_settlement_withExtremeHighPrice() (gas: 571208)
+[PASS] test_settlement_withExtremeMinPrice() (gas: 571519)
+[PASS] test_staleOracle_reverts() (gas: 522088)
+[PASS] test_twapDivergence_blocksSettlement() (gas: 606040)
+[PASS] test_twapZero_bypasses_check() (gas: 572944)
+[PASS] test_zeroOraclePrice_reverts() (gas: 524500)
+Suite result: ok. 9 passed; 0 failed; 0 skipped; finished in 191.00s (32.63ms CPU time)
+
+Ran 16 test suites in 191.00s (600.87s CPU time): 143 tests passed, 0 failed, 0 skipped (143 total tests)
+
+╭--------------------------------------------+-------------------+-------------------+-----------------+------------------╮
+| File                                       | % Lines           | % Statements      | % Branches      | % Funcs          |
++=========================================================================================================================+
+| script/Deploy.s.sol                        | 0.00% (0/38)      | 0.00% (0/49)      | 0.00% (0/1)     | 0.00% (0/1)      |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| script/DeployHook.s.sol                    | 0.00% (0/31)      | 0.00% (0/39)      | 0.00% (0/3)     | 0.00% (0/4)      |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| script/DeploySepolia.s.sol                 | 0.00% (0/54)      | 0.00% (0/63)      | 100.00% (0/0)   | 0.00% (0/3)      |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| script/DeployUnichain.s.sol                | 0.00% (0/53)      | 0.00% (0/61)      | 100.00% (0/0)   | 0.00% (0/4)      |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| script/Seed.s.sol                          | 0.00% (0/32)      | 0.00% (0/44)      | 0.00% (0/1)     | 0.00% (0/1)      |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| src/core/ILPNRegistry.sol                  | 57.69% (15/26)    | 48.15% (13/27)    | 100.00% (1/1)   | 75.00% (6/8)     |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| src/core/ILShieldCore.sol                  | 97.40% (150/154)  | 96.86% (185/191)  | 92.86% (26/28)  | 94.74% (18/19)   |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| src/core/JuniorVault.sol                   | 76.92% (40/52)    | 81.82% (45/55)    | 83.33% (5/6)    | 66.67% (10/15)   |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| src/core/PricingOracle.sol                 | 100.00% (64/64)   | 97.22% (70/72)    | 75.00% (6/8)    | 100.00% (15/15)  |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| src/core/SeniorVault.sol                   | 80.33% (49/61)    | 82.81% (53/64)    | 66.67% (4/6)    | 76.47% (13/17)   |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| src/hook/ILShieldHook.sol                  | 0.00% (0/44)      | 0.00% (0/40)      | 0.00% (0/3)     | 0.00% (0/13)     |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| src/hook/TickAccumulator.sol               | 0.00% (0/31)      | 0.00% (0/31)      | 0.00% (0/8)     | 0.00% (0/6)      |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| src/libraries/ConcentrationFactor.sol      | 100.00% (8/8)     | 76.92% (10/13)    | 0.00% (0/2)     | 100.00% (1/1)    |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| src/libraries/ILMath.sol                   | 93.75% (30/32)    | 94.87% (37/39)    | 71.43% (5/7)    | 100.00% (6/6)    |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| src/libraries/PremiumMath.sol              | 86.11% (31/36)    | 75.86% (44/58)    | 70.00% (7/10)   | 100.00% (5/5)    |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| src/libraries/VolatilityLib.sol            | 0.00% (0/79)      | 0.00% (0/115)     | 0.00% (0/14)    | 0.00% (0/7)      |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| src/periphery/BrevisCallback.sol           | 0.00% (0/37)      | 0.00% (0/38)      | 0.00% (0/7)     | 0.00% (0/8)      |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| src/periphery/ILShieldRouter.sol           | 0.00% (0/23)      | 0.00% (0/19)      | 0.00% (0/1)     | 0.00% (0/5)      |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| src/periphery/KeeperModule.sol             | 0.00% (0/60)      | 0.00% (0/65)      | 0.00% (0/7)     | 0.00% (0/11)     |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| test/GasBenchmark.t.sol                    | 100.00% (12/12)   | 100.00% (6/6)     | 100.00% (0/0)   | 100.00% (6/6)    |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| test/adversarial/AccessControlAttack.t.sol | 42.86% (3/7)      | 50.00% (3/6)      | 100.00% (0/0)   | 50.00% (3/6)     |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| test/adversarial/EconomicAttack.t.sol      | 100.00% (7/7)     | 100.00% (6/6)     | 100.00% (0/0)   | 100.00% (6/6)    |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| test/adversarial/OracleAttack.t.sol        | 75.00% (12/16)    | 81.82% (9/11)     | 100.00% (0/0)   | 77.78% (7/9)     |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| test/adversarial/ReentrancyAttack.t.sol    | 47.06% (8/17)     | 46.15% (6/13)     | 0.00% (0/2)     | 66.67% (6/9)     |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| test/fork/ForkBase.t.sol                   | 0.00% (0/3)       | 0.00% (0/3)       | 100.00% (0/0)   | 0.00% (0/3)      |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| test/fork/SepoliaFork.t.sol                | 0.00% (0/3)       | 0.00% (0/3)       | 100.00% (0/0)   | 0.00% (0/3)      |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| test/integration/Adversarial.t.sol         | 100.00% (12/12)   | 100.00% (6/6)     | 100.00% (0/0)   | 100.00% (6/6)    |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| test/integration/FullLifecycle.t.sol       | 100.00% (12/12)   | 100.00% (6/6)     | 100.00% (0/0)   | 100.00% (6/6)    |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| test/integration/TrancheWaterfall.t.sol    | 66.67% (4/6)      | 66.67% (2/3)      | 100.00% (0/0)   | 66.67% (2/3)     |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| test/invariant/VaultSolvency.t.sol         | 100.00% (73/73)   | 100.00% (73/73)   | 100.00% (5/5)   | 100.00% (12/12)  |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| test/unit/ILShieldCore.t.sol               | 100.00% (6/6)     | 100.00% (5/5)     | 100.00% (0/0)   | 100.00% (5/5)    |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| test/unit/JuniorVault.t.sol                | 66.67% (4/6)      | 66.67% (2/3)      | 100.00% (0/0)   | 66.67% (2/3)     |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| test/unit/PricingOracle.t.sol              | 100.00% (6/6)     | 100.00% (7/7)     | 100.00% (0/0)   | 100.00% (5/5)    |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| test/unit/SeniorVault.t.sol                | 66.67% (4/6)      | 66.67% (2/3)      | 100.00% (0/0)   | 66.67% (2/3)     |
+|--------------------------------------------+-------------------+-------------------+-----------------+------------------|
+| Total                                      | 49.68% (550/1107) | 47.70% (590/1237) | 49.17% (59/120) | 60.68% (142/234) |
+╰--------------------------------------------+-------------------+-------------------+-----------------+------------------╯

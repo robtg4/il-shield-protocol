@@ -1,12 +1,60 @@
-// Contract addresses — Unichain Sepolia deployment (2026-04-02)
-export const ADDRESSES = {
-  ILShieldCore: "0x5CbE5E8Dce54091f9e19A986f49289b4f29771d1" as `0x${string}`,
-  SeniorVault: "0xBC021bA9301F1c62AE0Aa51aC6cdee5C85861d0B" as `0x${string}`,
-  JuniorVault: "0x56343693d78a4FcE2c882c8ad86D81127C7F46cf" as `0x${string}`,
-  ILPNRegistry: "0x4C94377DdDCeFa10d0c2473B92f7dC9E2f5e8b7f" as `0x${string}`,
-  PricingOracle: "0x7D9E7B8cFa3D3607a73EFd880888da1eBB19CAee" as `0x${string}`,
-  USDC: "0x31d0220469e10c4E71834a79b1f276d740d3768F" as `0x${string}`,
-} as const;
+type Addr = `0x${string}`;
+
+interface ChainAddresses {
+  ILShieldCore: Addr;
+  SeniorVault: Addr;
+  JuniorVault: Addr;
+  ILPNRegistry: Addr;
+  PricingOracle: Addr;
+  USDC: Addr;
+  chainlinkEthUsd: Addr;
+  v4PoolManager: Addr;
+  v4PositionManager: Addr;
+  explorerUrl: string;
+  explorerName: string;
+}
+
+// Ethereum Sepolia (primary — live Chainlink + live Uniswap v4)
+const SEPOLIA: ChainAddresses = {
+  ILShieldCore: "0x73317bd4f7c196440DA38E1225012Eb579eBFBeF",
+  SeniorVault: "0x8BDE08C4BD88dbE16561F2990D7DE75B76Fc3752",
+  JuniorVault: "0x0d6d128c1CF0a8E8032B7d3910A22197fDDC3bEA",
+  ILPNRegistry: "0xEcC2775fa0f0fF3b7D92199929b088432c7795f0",
+  PricingOracle: "0x43C39c44Ffac22E5b8C03A07Af433E21DC0f3743",
+  USDC: "0xc6ffEA5afAf2fd72CF00140dd3DDa8841682128E",
+  chainlinkEthUsd: "0x694AA1769357215DE4FAC081bf1f309aDC325306",
+  v4PoolManager: "0xE03A1074c86CFeDd5C142C4F04F1a1536e203543",
+  v4PositionManager: "0x429ba70129df741B2Ca2a85BC3A2a3328e5c09b4",
+  explorerUrl: "https://sepolia.etherscan.io",
+  explorerName: "Etherscan",
+};
+
+// Unichain Sepolia (secondary — mock Chainlink, hook testing)
+const UNICHAIN_SEPOLIA: ChainAddresses = {
+  ILShieldCore: "0x5CbE5E8Dce54091f9e19A986f49289b4f29771d1",
+  SeniorVault: "0xBC021bA9301F1c62AE0Aa51aC6cdee5C85861d0B",
+  JuniorVault: "0x56343693d78a4FcE2c882c8ad86D81127C7F46cf",
+  ILPNRegistry: "0x4C94377DdDCeFa10d0c2473B92f7dC9E2f5e8b7f",
+  PricingOracle: "0x7D9E7B8cFa3D3607a73EFd880888da1eBB19CAee",
+  USDC: "0x31d0220469e10c4E71834a79b1f276d740d3768F",
+  chainlinkEthUsd: "0x8BDE08C4BD88dbE16561F2990D7DE75B76Fc3752", // MockFeed
+  v4PoolManager: "0x0000000000000000000000000000000000000000",
+  v4PositionManager: "0x0000000000000000000000000000000000000000",
+  explorerUrl: "https://sepolia.uniscan.xyz",
+  explorerName: "Uniscan",
+};
+
+export const CHAIN_CONFIGS: Record<number, ChainAddresses> = {
+  11155111: SEPOLIA,
+  1301: UNICHAIN_SEPOLIA,
+};
+
+// Default to Sepolia
+export const DEFAULT_CHAIN_ID = 11155111;
+
+export function getAddresses(chainId: number | undefined): ChainAddresses {
+  return CHAIN_CONFIGS[chainId ?? DEFAULT_CHAIN_ID] ?? SEPOLIA;
+}
 
 export const ERC20_ABI = [
   {

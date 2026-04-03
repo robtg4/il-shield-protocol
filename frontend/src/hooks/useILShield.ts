@@ -1,13 +1,20 @@
 "use client";
 
-import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
+import { useAccount, useChainId, useReadContract, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
 import { parseUnits, formatUnits, type Address } from "viem";
-import { ADDRESSES, ERC20_ABI, IL_SHIELD_CORE_ABI, VAULT_ABI, DURATION_BLOCKS } from "@/lib/contracts";
+import { getAddresses, ERC20_ABI, IL_SHIELD_CORE_ABI, VAULT_ABI, DURATION_BLOCKS } from "@/lib/contracts";
+
+/** Returns the correct contract addresses for the connected chain */
+export function useChainAddresses() {
+  const chainId = useChainId();
+  return getAddresses(chainId);
+}
 
 export function useUSDCBalance() {
   const { address } = useAccount();
+  const addrs = useChainAddresses();
   const { data, refetch } = useReadContract({
-    address: ADDRESSES.USDC,
+    address: addrs.USDC,
     abi: ERC20_ABI,
     functionName: "balanceOf",
     args: address ? [address] : undefined,
@@ -22,11 +29,12 @@ export function useUSDCBalance() {
 
 export function useUSDCAllowance() {
   const { address } = useAccount();
+  const addrs = useChainAddresses();
   const { data, refetch } = useReadContract({
-    address: ADDRESSES.USDC,
+    address: addrs.USDC,
     abi: ERC20_ABI,
     functionName: "allowance",
-    args: address ? [address, ADDRESSES.ILShieldCore] : undefined,
+    args: address ? [address, addrs.ILShieldCore] : undefined,
     query: { enabled: !!address },
   });
   return {
@@ -36,16 +44,17 @@ export function useUSDCAllowance() {
 }
 
 export function useApproveUSDC() {
+  const addrs = useChainAddresses();
   const { writeContract, data: hash, isPending, error } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
   const approve = (amount: string) => {
     const amountWei = parseUnits(amount, 6);
     writeContract({
-      address: ADDRESSES.USDC,
+      address: addrs.USDC,
       abi: ERC20_ABI,
       functionName: "approve",
-      args: [ADDRESSES.ILShieldCore, amountWei],
+      args: [addrs.ILShieldCore, amountWei],
     });
   };
 
@@ -53,6 +62,7 @@ export function useApproveUSDC() {
 }
 
 export function useRegister() {
+  const addrs = useChainAddresses();
   const { writeContract, data: hash, isPending, error } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
@@ -67,7 +77,7 @@ export function useRegister() {
     const premiumWei = parseUnits(params.premiumAmount, 6);
 
     writeContract({
-      address: ADDRESSES.ILShieldCore,
+      address: addrs.ILShieldCore,
       abi: IL_SHIELD_CORE_ABI,
       functionName: "register",
       args: [
@@ -84,12 +94,13 @@ export function useRegister() {
 }
 
 export function useSettle() {
+  const addrs = useChainAddresses();
   const { writeContract, data: hash, isPending, error } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
   const settle = (ilpnId: bigint, exitSqrtPriceX96: bigint) => {
     writeContract({
-      address: ADDRESSES.ILShieldCore,
+      address: addrs.ILShieldCore,
       abi: IL_SHIELD_CORE_ABI,
       functionName: "settle",
       args: [ilpnId, exitSqrtPriceX96, "0x"],
@@ -100,12 +111,13 @@ export function useSettle() {
 }
 
 export function useCancelProtection() {
+  const addrs = useChainAddresses();
   const { writeContract, data: hash, isPending, error } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
   const cancel = (ilpnId: bigint) => {
     writeContract({
-      address: ADDRESSES.ILShieldCore,
+      address: addrs.ILShieldCore,
       abi: IL_SHIELD_CORE_ABI,
       functionName: "cancelProtection",
       args: [ilpnId],
@@ -116,13 +128,14 @@ export function useCancelProtection() {
 }
 
 export function useTopUpPremium() {
+  const addrs = useChainAddresses();
   const { writeContract, data: hash, isPending, error } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
   const topUp = (ilpnId: bigint, amount: string) => {
     const amountWei = parseUnits(amount, 6);
     writeContract({
-      address: ADDRESSES.ILShieldCore,
+      address: addrs.ILShieldCore,
       abi: IL_SHIELD_CORE_ABI,
       functionName: "topUpPremium",
       args: [ilpnId, amountWei],
@@ -134,7 +147,8 @@ export function useTopUpPremium() {
 
 export function useVaultDeposit(vault: "senior" | "junior") {
   const { address } = useAccount();
-  const vaultAddr = vault === "senior" ? ADDRESSES.SeniorVault : ADDRESSES.JuniorVault;
+  const addrs = useChainAddresses();
+  const vaultAddr = vault === "senior" ? addrs.SeniorVault : addrs.JuniorVault;
   const { writeContract, data: hash, isPending, error } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
@@ -153,7 +167,8 @@ export function useVaultDeposit(vault: "senior" | "junior") {
 }
 
 export function useVaultTotalAssets(vault: "senior" | "junior") {
-  const vaultAddr = vault === "senior" ? ADDRESSES.SeniorVault : ADDRESSES.JuniorVault;
+  const addrs = useChainAddresses();
+  const vaultAddr = vault === "senior" ? addrs.SeniorVault : addrs.JuniorVault;
   const { data } = useReadContract({
     address: vaultAddr,
     abi: VAULT_ABI,

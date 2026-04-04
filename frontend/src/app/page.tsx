@@ -231,28 +231,91 @@ function HomeInner() {
                 Protect anytime, anywhere.
               </h1>
 
-              <div className="w-full max-w-[480px] rounded-3xl border border-card-border bg-card p-4">
-                {/* Position */}
-                <div className="rounded-2xl bg-input p-3">
-                  <div className="mb-1.5 flex items-center justify-between">
-                    <span className="text-[13px] text-text3">Position</span>
-                    <StatusBadge status="in-range" />
+              {/* Two-column layout: Transaction (left) + Analytics (right) */}
+              <div className="w-full max-w-[1000px] flex flex-col lg:flex-row gap-4 lg:items-start">
+
+                {/* ── LEFT: Transaction Card ── */}
+                <div className="w-full lg:w-[440px] lg:shrink-0 rounded-3xl border border-card-border bg-card p-4">
+                  {/* Position */}
+                  <div className="rounded-2xl bg-input p-3">
+                    <div className="mb-1.5 flex items-center justify-between">
+                      <span className="text-[13px] text-text3">Position</span>
+                      <StatusBadge status="in-range" />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[28px] text-text1">—</span>
+                      <TokenPairSelector token0="ETH" token1="USDC" />
+                    </div>
+                    <div className="mt-1 text-[13px] text-text3">
+                      Enter a Uniswap v4 position ID to protect
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-[28px] text-text1">—</span>
-                    <TokenPairSelector token0="ETH" token1="USDC" />
+
+                  <ShieldDivider />
+
+                  {/* Coverage */}
+                  <div className="rounded-2xl bg-input p-3">
+                    <div className="mb-1.5 text-[13px] text-text3">Coverage</div>
+                    <div className="mb-3 text-[28px] text-green">{coveragePct}%</div>
+                    <div className="mb-2">
+                      <CoverageTierPills selected={selectedTier} onSelect={setSelectedTier} />
+                    </div>
+                    <DurationPills selected={selectedDuration} onSelect={setSelectedDuration} />
                   </div>
-                  <div className="mt-1 text-[13px] text-text3">
-                    Enter a Uniswap v4 position ID to protect
+
+                  {/* Premium */}
+                  <div className="mt-3">
+                    <PremiumInput
+                      value={premiumAmount}
+                      onChange={setPremiumAmount}
+                      balance={isConnected ? Number(usdcBalance.formatted).toLocaleString(undefined, { maximumFractionDigits: 2 }) : "—"}
+                    />
                   </div>
+
+                  {/* Summary */}
+                  <div className="mt-3 space-y-0.5 px-1">
+                    <SummaryRow label="Coverage tier" value={`${coveragePct}%`} />
+                    <SummaryRow label="Duration" value={`${durationLabel} (${durationBlocks.toLocaleString()} blocks)`} mono />
+                    <SummaryRow label="Activation delay" value="10 blocks (~2 min)" />
+                    <SummaryRow
+                      label="Senior vault TVL"
+                      value={`$${Number(seniorAssets.formatted).toLocaleString()}`}
+                      mono
+                    />
+                    <SummaryRow
+                      label="Junior vault TVL"
+                      value={`$${Number(juniorAssets.formatted).toLocaleString()}`}
+                      mono
+                    />
+                  </div>
+
+                  {/* Error display */}
+                  {registerError && (
+                    <div className="mt-2 rounded-xl bg-red-dim p-2 text-xs text-red">
+                      {registerError.message?.slice(0, 120)}
+                    </div>
+                  )}
+
+                  {/* CTA */}
+                  <button
+                    onClick={isConnected ? handleProtect : undefined}
+                    disabled={!isConnected || !premiumAmount || isTxPending}
+                    className={`mt-4 w-full rounded-[20px] py-4 text-lg font-semibold transition-all ${
+                      !isConnected || !premiumAmount
+                        ? "cursor-default bg-input text-text3"
+                        : isTxPending
+                          ? "bg-pink-cta text-pink-cta-text opacity-70"
+                          : "bg-pink-cta text-pink-cta-text hover:brightness-110"
+                    }`}
+                  >
+                    {ctaText()}
+                  </button>
                 </div>
 
-                <ShieldDivider />
-
-                {/* Analytics Section */}
-                <div className="my-3">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[13px] text-text3 font-medium">Analytics</span>
+                {/* ── RIGHT: Analytics Card ── */}
+                <div className="w-full lg:flex-1 rounded-3xl border border-card-border bg-card p-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <span className="text-sm text-text1 font-medium">Position Analytics</span>
                     <ViewToggle mode={viewMode} onChange={handleViewModeChange} />
                   </div>
                   <div
@@ -267,74 +330,14 @@ function HomeInner() {
                     )}
                   </div>
                   {!isConnected && (
-                    <div className="mt-2 text-center text-[11px] text-text3 italic">
+                    <div className="mt-3 text-center text-[12px] text-text3 italic">
                       Example position — connect wallet for real data
                     </div>
                   )}
                 </div>
-
-                <ShieldDivider />
-
-                {/* Coverage */}
-                <div className="rounded-2xl bg-input p-3">
-                  <div className="mb-1.5 text-[13px] text-text3">Coverage</div>
-                  <div className="mb-3 text-[28px] text-green">{coveragePct}%</div>
-                  <div className="mb-2">
-                    <CoverageTierPills selected={selectedTier} onSelect={setSelectedTier} />
-                  </div>
-                  <DurationPills selected={selectedDuration} onSelect={setSelectedDuration} />
-                </div>
-
-                {/* Premium */}
-                <div className="mt-3">
-                  <PremiumInput
-                    value={premiumAmount}
-                    onChange={setPremiumAmount}
-                    balance={isConnected ? Number(usdcBalance.formatted).toLocaleString(undefined, { maximumFractionDigits: 2 }) : "—"}
-                  />
-                </div>
-
-                {/* Summary */}
-                <div className="mt-3 space-y-0.5 px-1">
-                  <SummaryRow label="Coverage tier" value={`${coveragePct}%`} />
-                  <SummaryRow label="Duration" value={`${durationLabel} (${durationBlocks.toLocaleString()} blocks)`} mono />
-                  <SummaryRow label="Activation delay" value="10 blocks (~2 min)" />
-                  <SummaryRow
-                    label="Senior vault TVL"
-                    value={`$${Number(seniorAssets.formatted).toLocaleString()}`}
-                    mono
-                  />
-                  <SummaryRow
-                    label="Junior vault TVL"
-                    value={`$${Number(juniorAssets.formatted).toLocaleString()}`}
-                    mono
-                  />
-                </div>
-
-                {/* Error display */}
-                {registerError && (
-                  <div className="mt-2 rounded-xl bg-red-dim p-2 text-xs text-red">
-                    {registerError.message?.slice(0, 120)}
-                  </div>
-                )}
-
-                {/* CTA */}
-                <button
-                  onClick={isConnected ? handleProtect : undefined}
-                  disabled={!isConnected || !premiumAmount || isTxPending}
-                  className={`mt-4 w-full rounded-[20px] py-4 text-lg font-semibold transition-all ${
-                    !isConnected || !premiumAmount
-                      ? "cursor-default bg-input text-text3"
-                      : isTxPending
-                        ? "bg-pink-cta text-pink-cta-text opacity-70"
-                        : "bg-pink-cta text-pink-cta-text hover:brightness-110"
-                  }`}
-                >
-                  {ctaText()}
-                </button>
               </div>
 
-              <p className="mt-4 max-w-[480px] text-center text-sm leading-relaxed text-text2">
+              <p className="mt-5 max-w-[1000px] text-center text-sm leading-relaxed text-text2">
                 Protect LP positions with{" "}
                 <span className="text-pink">zero app fees</span> on Ethereum Sepolia and Unichain Sepolia.
               </p>

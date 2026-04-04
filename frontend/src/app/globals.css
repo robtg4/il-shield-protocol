@@ -48,6 +48,35 @@ body {
   background: var(--bg);
   color: var(--text1);
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+/* Safe area insets for mobile notches */
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+.safe-top { padding-top: env(safe-area-inset-top); }
+
+/* Smooth range input on mobile */
+input[type="range"] {
+  -webkit-appearance: none;
+  touch-action: manipulation;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--pink);
+  cursor: pointer;
+}
+
+/* Prevent text selection on interactive elements */
+button, [role="button"] {
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
 }
 
 @keyframes fadeSlideIn {

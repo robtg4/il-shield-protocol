@@ -14,7 +14,7 @@ export function DurationPills({ selected, onSelect }: Props) {
         <button
           key={d}
           onClick={() => onSelect(d)}
-          className={`flex-1 rounded-xl py-1.5 text-[13px] font-medium transition-all duration-[120ms] ${
+          className={`flex-1 rounded-xl py-2.5 text-[13px] font-medium transition-all duration-[120ms] ${
             selected === d
               ? "bg-pink-dim text-pink"
               : "text-text3 hover:text-text2"

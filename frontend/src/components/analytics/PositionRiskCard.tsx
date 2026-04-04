@@ -9,10 +9,10 @@ export function PositionRiskCard({ data }: { data: PositionAnalytics }) {
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium text-text1">ETH / USDC</span>
-          <span className="text-[11px] text-text3">{data.feeRate}</span>
-          <span className="text-[11px] text-text3">{data.positionId}</span>
-          <span className="text-[11px] text-text3">v4</span>
-          <span className={`text-[11px] px-1.5 py-0.5 rounded ${data.inRange ? "bg-green-dim text-green" : "bg-red-dim text-red"}`}>
+          <span className="text-[12px] text-text3">{data.feeRate}</span>
+          <span className="text-[12px] text-text3">{data.positionId}</span>
+          <span className="text-[12px] text-text3">v4</span>
+          <span className={`text-[12px] px-1.5 py-0.5 rounded ${data.inRange ? "bg-green-dim text-green" : "bg-red-dim text-red"}`}>
             {data.inRange ? "In \u2713" : "Out"}
           </span>
         </div>
@@ -41,27 +41,27 @@ export function PositionRiskCard({ data }: { data: PositionAnalytics }) {
       </div>
 
       {/* P&L Trifecta */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-3">
         <div className="rounded-xl bg-card p-3 text-center">
-          <div className="text-[11px] text-text3 mb-1">Current IL</div>
+          <div className="text-[12px] text-text3 mb-1">Current IL</div>
           <div className="font-mono text-base font-semibold text-red">
             -${data.currentIL.toFixed(2)}
           </div>
-          <div className="font-mono text-[11px] text-text3">-{data.currentILPct.toFixed(2)}%</div>
+          <div className="font-mono text-[12px] text-text3">-{data.currentILPct.toFixed(2)}%</div>
         </div>
         <div className="rounded-xl bg-card p-3 text-center">
-          <div className="text-[11px] text-text3 mb-1">Fee Income</div>
+          <div className="text-[12px] text-text3 mb-1">Fee Income</div>
           <div className="font-mono text-base font-semibold text-green">
             +${data.feeIncome.toFixed(2)}
           </div>
-          <div className="font-mono text-[11px] text-text3">+{data.feeIncomePct.toFixed(2)}%</div>
+          <div className="font-mono text-[12px] text-text3">+{data.feeIncomePct.toFixed(2)}%</div>
         </div>
         <div className="rounded-xl bg-card p-3 text-center">
-          <div className="text-[11px] text-text3 mb-1">Net P&L</div>
+          <div className="text-[12px] text-text3 mb-1">Net P&L</div>
           <div className={`font-mono text-base font-semibold ${data.isNetPositive ? "text-green" : "text-red"}`}>
             {data.isNetPositive ? "+" : "-"}${Math.abs(data.netPnL).toFixed(2)}
           </div>
-          <div className={`font-mono text-[11px] ${data.isNetPositive ? "text-green" : "text-red"}`}>
+          <div className={`font-mono text-[12px] ${data.isNetPositive ? "text-green" : "text-red"}`}>
             {data.isNetPositive ? "+" : ""}{data.netPnLPct.toFixed(2)}%
           </div>
         </div>

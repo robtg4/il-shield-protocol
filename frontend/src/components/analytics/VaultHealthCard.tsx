@@ -20,7 +20,7 @@ export function VaultHealthCard({ data }: { data: PositionAnalytics }) {
         <div className="h-2 rounded-full bg-card overflow-hidden">
           <div className="h-full rounded-full bg-green" style={{ width: `${srPct}%` }} />
         </div>
-        <div className="flex justify-between text-[11px] text-text3 mt-1">
+        <div className="flex justify-between text-[12px] text-text3 mt-1">
           <span>8-12% target APY &middot; last-loss</span>
           <span className="font-mono">Share price: 1.0004</span>
         </div>
@@ -35,7 +35,7 @@ export function VaultHealthCard({ data }: { data: PositionAnalytics }) {
         <div className="h-2 rounded-full bg-card overflow-hidden">
           <div className="h-full rounded-full bg-amber" style={{ width: `${jrPct}%` }} />
         </div>
-        <div className="flex justify-between text-[11px] text-text3 mt-1">
+        <div className="flex justify-between text-[12px] text-text3 mt-1">
           <span>20-50% target APY &middot; first-loss</span>
           <span className="font-mono">Share price: 1.0021</span>
         </div>

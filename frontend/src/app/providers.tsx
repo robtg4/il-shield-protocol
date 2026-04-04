@@ -2,7 +2,7 @@
 
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { mainnet, sepolia } from "wagmi/chains";
-import { injected, walletConnect } from "wagmi/connectors";
+import { injected, walletConnect, coinbaseWallet, safe } from "wagmi/connectors";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { type Chain } from "viem";
 import { type ReactNode, useState } from "react";
@@ -26,6 +26,8 @@ const config = createConfig({
   chains: [unichainSepolia, sepolia, mainnet],
   connectors: [
     injected(),
+    coinbaseWallet({ appName: "IL Shield Protocol" }),
+    safe(),
     ...(wcProjectId
       ? [walletConnect({ projectId: wcProjectId })]
       : []),

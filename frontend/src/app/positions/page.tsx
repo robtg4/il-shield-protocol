@@ -87,14 +87,14 @@ function PositionCard({
 
       <div className="mt-3 flex items-center justify-between rounded-xl bg-input px-3 py-2">
         <div>
-          <div className="text-[11px] font-medium uppercase tracking-[0.05em] text-text3">Tick range</div>
+          <div className="text-[12px] font-medium uppercase tracking-[0.05em] text-text3">Tick range</div>
           <div className="font-mono text-sm text-text1">
             {info.tickLower.toLocaleString()} → {info.tickUpper.toLocaleString()}
           </div>
         </div>
         <button
           onClick={() => onProtect(tokenId)}
-          className="rounded-[16px] bg-pink-cta px-4 py-2 text-sm font-semibold text-pink-cta-text transition-colors hover:brightness-110"
+          className="rounded-[16px] bg-pink-cta px-5 py-2.5 text-sm font-semibold text-pink-cta-text transition-colors hover:brightness-110"
         >
           Protect
         </button>
@@ -125,7 +125,7 @@ function ManualEntry({ onProtect }: { onProtect: (id: bigint) => void }) {
             if (manualId) onProtect(BigInt(manualId));
           }}
           disabled={!manualId}
-          className={`rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
+          className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors ${
             manualId
               ? "bg-pink-cta text-pink-cta-text hover:brightness-110"
               : "bg-input text-text3"

@@ -18,7 +18,7 @@ export function CoverageTierPills({ selected, onSelect }: Props) {
         <button
           key={tier.value}
           onClick={() => onSelect(tier.value)}
-          className={`flex-1 rounded-2xl py-1.5 text-sm font-semibold transition-all duration-[120ms] ${
+          className={`flex-1 rounded-2xl py-2.5 text-sm font-semibold transition-all duration-[120ms] ${
             selected === tier.value
               ? "bg-pink text-white"
               : "bg-input text-text2 hover:bg-input-hover"

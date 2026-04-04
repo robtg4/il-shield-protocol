@@ -17,8 +17,8 @@ export function ScenarioTable({ positionValue }: { positionValue: number }) {
   });
 
   return (
-    <div className="rounded-xl bg-card overflow-hidden">
-      <table className="w-full text-[12px]">
+    <div className="rounded-xl bg-card overflow-x-auto -mx-1">
+      <table className="w-full min-w-[340px] text-[12px]">
         <thead>
           <tr className="text-text3 border-b border-card-border">
             <th className="px-3 py-2 text-left font-medium">Move</th>

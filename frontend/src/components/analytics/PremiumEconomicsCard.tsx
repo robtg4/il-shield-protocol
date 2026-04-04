@@ -13,20 +13,20 @@ export function PremiumEconomicsCard({ data }: { data: PositionAnalytics }) {
       {/* Hero metrics */}
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="rounded-xl bg-card p-3 text-center">
-          <div className="text-[11px] text-text3 mb-1">Monthly premium</div>
+          <div className="text-[12px] text-text3 mb-1">Monthly premium</div>
           <div className="font-mono text-lg font-semibold text-text1">
             ${data.monthlyPremium.toFixed(2)}
           </div>
-          <div className="font-mono text-[11px] text-text3">
+          <div className="font-mono text-[12px] text-text3">
             {((data.monthlyPremium / data.liquidity) * 100).toFixed(3)}%/month
           </div>
         </div>
         <div className="rounded-xl bg-card p-3 text-center">
-          <div className="text-[11px] text-text3 mb-1">Break-even</div>
+          <div className="text-[12px] text-text3 mb-1">Break-even</div>
           <div className="font-mono text-lg font-semibold text-text1">
             &plusmn;{data.breakEvenMove}%
           </div>
-          <div className="font-mono text-[11px] text-text3">IL &gt; premium</div>
+          <div className="font-mono text-[12px] text-text3">IL &gt; premium</div>
         </div>
       </div>
 
@@ -42,7 +42,7 @@ export function PremiumEconomicsCard({ data }: { data: PositionAnalytics }) {
 
       {/* Historical context */}
       <div className="mt-4 rounded-xl bg-card p-3">
-        <div className="text-[11px] text-text3 font-medium mb-2">Historical context</div>
+        <div className="text-[12px] text-text3 font-medium mb-2">Historical context</div>
         <div className="space-y-1 text-[12px]">
           <Row label="ETH 30-day realized vol" value="72%" />
           <Row label={`ETH >${data.breakEvenMove}% moves in 30d`} value={`${probPct}%`} />

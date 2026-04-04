@@ -38,24 +38,24 @@ export function WhatCouldHappenSlider({
       <div className="grid grid-cols-2 gap-3">
         {/* Without protection */}
         <div className="rounded-xl bg-red-dim p-3">
-          <div className="text-[11px] text-text3 mb-1">Without protection</div>
+          <div className="text-[12px] text-text3 mb-1">Without protection</div>
           <div className="font-mono text-xl font-semibold text-red">
             -${withoutLoss.toLocaleString(undefined, { maximumFractionDigits: 0 })}
           </div>
-          <div className="text-[11px] text-text3 mt-1">
+          <div className="text-[12px] text-text3 mt-1">
             you lose {withoutLossPct.toFixed(1)}%
           </div>
         </div>
 
         {/* With IL Shield */}
         <div className={`rounded-xl p-3 ${netWithProtection >= 0 ? "bg-green-dim" : "bg-input"}`}>
-          <div className="text-[11px] text-text3 mb-1">With IL Shield</div>
+          <div className="text-[12px] text-text3 mb-1">With IL Shield</div>
           <div className={`font-mono text-xl font-semibold ${netWithProtection >= 0 ? "text-green" : "text-text2"}`}>
             {netWithProtection >= 0
               ? `+$${netWithProtection.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
               : `-$${Math.abs(netWithProtection).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
           </div>
-          <div className="text-[11px] text-text3 mt-1">
+          <div className="text-[12px] text-text3 mt-1">
             {netWithProtection >= 0 ? "you get paid" : `just the premium`}
           </div>
         </div>

@@ -19,7 +19,7 @@ export function StatusBadge({ status, warmingPercent }: Props) {
 
   return (
     <span
-      className={`inline-flex rounded-[10px] px-2.5 py-1 text-[13px] font-medium ${c.bg} ${c.text}`}
+      className={`inline-flex rounded-[10px] px-3 py-1.5 text-[13px] font-medium ${c.bg} ${c.text}`}
     >
       {label}
     </span>

@@ -13,7 +13,7 @@ export function ViewToggle({
     <div className="flex bg-input rounded-xl p-0.5 text-sm">
       <button
         onClick={() => onChange("simple")}
-        className={`px-4 py-1.5 rounded-[10px] font-medium transition-all ${
+        className={`px-4 py-2 rounded-[10px] font-medium transition-all ${
           mode === "simple" ? "bg-pink-dim text-pink" : "text-text2"
         }`}
       >
@@ -21,7 +21,7 @@ export function ViewToggle({
       </button>
       <button
         onClick={() => onChange("technical")}
-        className={`px-4 py-1.5 rounded-[10px] font-medium transition-all ${
+        className={`px-4 py-2 rounded-[10px] font-medium transition-all ${
           mode === "technical" ? "bg-pink-dim text-pink" : "text-text2"
         }`}
       >

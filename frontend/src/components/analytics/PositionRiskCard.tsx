@@ -8,7 +8,7 @@ export function PositionRiskCard({ data }: { data: PositionAnalytics }) {
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium text-text1">ETH / USDC</span>
+          <span className="text-sm font-medium text-text1">{data.pair}</span>
           <span className="text-[12px] text-text3">{data.feeRate}</span>
           <span className="text-[12px] text-text3">{data.positionId}</span>
           <span className="text-[12px] text-text3">v4</span>
@@ -21,54 +21,41 @@ export function PositionRiskCard({ data }: { data: PositionAnalytics }) {
       {/* Position details */}
       <div className="grid grid-cols-2 gap-x-6 gap-y-1 mb-4 text-sm">
         <div className="flex justify-between">
-          <span className="text-text3">Liquidity</span>
-          <span className="font-mono text-text1">${data.liquidity.toLocaleString()}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-text3">Entry</span>
-          <span className="font-mono text-text1">${data.entryPrice.toLocaleString()}</span>
-        </div>
-        <div className="flex justify-between">
-          <span className="text-text3">Current</span>
+          <span className="text-text3">Current price</span>
           <span className="font-mono text-text1">${data.currentPrice.toLocaleString()}</span>
         </div>
         <div className="flex justify-between">
-          <span className="text-text3">Change</span>
+          <span className="text-text3">Price change</span>
           <span className={`font-mono ${data.priceChangePct >= 0 ? "text-green" : "text-red"}`}>
             {data.priceChangePct >= 0 ? "+" : ""}{data.priceChangePct.toFixed(1)}%
           </span>
         </div>
+        <div className="flex justify-between">
+          <span className="text-text3">Tick range</span>
+          <span className="font-mono text-text1">{data.tickLower} → {data.tickUpper}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-text3">Fee tier</span>
+          <span className="font-mono text-text1">{data.feeRate}</span>
+        </div>
       </div>
 
-      {/* P&L Trifecta */}
-      <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-3">
+      {/* IL metrics */}
+      <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2">
         <div className="rounded-xl bg-card p-3 text-center">
           <div className="text-[12px] text-text3 mb-1">Current IL</div>
           <div className="font-mono text-base font-semibold text-red">
-            -${data.currentIL.toFixed(2)}
+            {data.currentIL > 0 ? `-$${data.currentIL.toFixed(2)}` : "$0"}
           </div>
           <div className="font-mono text-[12px] text-text3">-{data.currentILPct.toFixed(2)}%</div>
         </div>
         <div className="rounded-xl bg-card p-3 text-center">
-          <div className="text-[12px] text-text3 mb-1">Fee Income</div>
-          <div className="font-mono text-base font-semibold text-green">
-            +${data.feeIncome.toFixed(2)}
+          <div className="text-[12px] text-text3 mb-1">IL at &plusmn;50%</div>
+          <div className="font-mono text-base font-semibold text-amber">
+            -${data.ilAt50PctMove.toFixed(2)}
           </div>
-          <div className="font-mono text-[12px] text-text3">+{data.feeIncomePct.toFixed(2)}%</div>
+          <div className="font-mono text-[12px] text-text3">max risk estimate</div>
         </div>
-        <div className="rounded-xl bg-card p-3 text-center">
-          <div className="text-[12px] text-text3 mb-1">Net P&L</div>
-          <div className={`font-mono text-base font-semibold ${data.isNetPositive ? "text-green" : "text-red"}`}>
-            {data.isNetPositive ? "+" : "-"}${Math.abs(data.netPnL).toFixed(2)}
-          </div>
-          <div className={`font-mono text-[12px] ${data.isNetPositive ? "text-green" : "text-red"}`}>
-            {data.isNetPositive ? "+" : ""}{data.netPnLPct.toFixed(2)}%
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-3 text-[12px] text-text3">
-        IL risk: {data.currentILPct.toFixed(2)}% current, {((data.ilAt50PctMove / data.liquidity) * 100).toFixed(1)}% at &plusmn;50%
       </div>
     </div>
   );

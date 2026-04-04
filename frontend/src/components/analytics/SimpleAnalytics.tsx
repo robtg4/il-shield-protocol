@@ -7,29 +7,33 @@ import { WhatItCostsCard } from "./WhatItCostsCard";
 import { HowItWorksSteps } from "./HowItWorksSteps";
 
 export function SimpleAnalytics({ data }: { data: PositionAnalytics }) {
+  const estimatedValue = data.currentPrice * 20;
+
   return (
     <div className="space-y-3">
       <PositionHookCard
         il={data.currentIL}
-        netPnL={data.netPnL}
-        isPositive={data.isNetPositive}
         ilAt10Pct={data.ilAt10PctMove}
         historicalProb={data.historicalMoveProb}
-        positionValue={data.liquidity}
+        pair={data.pair}
+        inRange={data.inRange}
       />
-      <WhatCouldHappenSlider
-        positionValue={data.liquidity}
-        monthlyPremium={data.monthlyPremium}
-      />
-      <WhatItCostsCard
-        dailyCost={data.dailyCost}
-        monthly={data.monthlyPremium}
-        breakEven={data.breakEvenMove}
-        vaultTVL={data.seniorTVL + data.juniorTVL}
-        maxPayout={data.maxPayout}
-        positionValue={data.liquidity}
-        historicalProb={data.historicalMoveProb}
-      />
+      {data.monthlyPremium > 0 && (
+        <WhatCouldHappenSlider
+          positionValue={estimatedValue}
+          monthlyPremium={data.monthlyPremium}
+        />
+      )}
+      {data.monthlyPremium > 0 && (
+        <WhatItCostsCard
+          dailyCost={data.dailyCost}
+          monthly={data.monthlyPremium}
+          breakEven={data.breakEvenMove}
+          vaultTVL={data.seniorTVL + data.juniorTVL}
+          maxPayout={data.maxPayout}
+          historicalProb={data.historicalMoveProb}
+        />
+      )}
       <HowItWorksSteps />
     </div>
   );

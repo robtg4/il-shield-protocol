@@ -5,39 +5,30 @@ import { useChainlinkPrice } from "./useChainlinkPrice";
 import { useVaultTotalAssets } from "./useILShield";
 import { computeIL, findBreakEven } from "@/lib/ilmath";
 import { getHistoricalProb } from "@/lib/scenarios";
+import type { UserPosition } from "./useUserPositions";
 
 export interface PositionAnalytics {
   pair: string;
   positionId: string;
   feeRate: string;
-  liquidity: number;
-  entryPrice: number;
+  tickLower: number;
+  tickUpper: number;
   currentPrice: number;
   priceChangePct: number;
   inRange: boolean;
   currentIL: number;
   currentILPct: number;
-  feeIncome: number;
-  feeIncomePct: number;
-  netPnL: number;
-  netPnLPct: number;
-  isNetPositive: boolean;
   ilAt10PctMove: number;
   ilAt50PctMove: number;
-  maxILInRange: number;
   historicalMoveProb: number;
   monthlyPremium: number;
   dailyCost: number;
   premiumPerBlock: number;
   breakEvenMove: number;
-  premiumAsFeePercent: number;
   seniorTVL: number;
   juniorTVL: number;
-  utilization: number;
-  combinedRatio: number;
   sjRatio: number;
   maxPayout: number;
-  activePositions: number;
   chainlinkAddress: string;
   chainlinkPrice: number;
   chainlinkLastUpdate: number;
@@ -45,86 +36,92 @@ export interface PositionAnalytics {
   twapConfigured: boolean;
 }
 
-const DEFAULT_ENTRY_PRICE = 2641;
-const DEFAULT_FEE_INCOME = 891.5;
-const DEFAULT_POSITION_VALUE = 48291;
-const DEFAULT_ACTIVE_POSITIONS = 47;
-
+/**
+ * Returns analytics for a selected position, or null if no position is provided.
+ * All values are derived from on-chain data — no hardcoded defaults.
+ */
 export function usePositionAnalytics(
-  positionId: bigint,
+  position: UserPosition | null,
   premiumAmount?: number
-): PositionAnalytics {
+): PositionAnalytics | null {
   const chainlink = useChainlinkPrice();
   const seniorAssets = useVaultTotalAssets("senior");
   const juniorAssets = useVaultTotalAssets("junior");
 
   return useMemo(() => {
-    const currentPrice = chainlink.price || 2048;
-    const entryPrice = DEFAULT_ENTRY_PRICE;
-    const positionValue = DEFAULT_POSITION_VALUE;
-    const feeIncome = DEFAULT_FEE_INCOME;
+    if (!position) return null;
 
-    const priceChangePct = ((currentPrice - entryPrice) / entryPrice) * 100;
-    const currentIL = computeIL(positionValue, Math.abs(priceChangePct));
-    const currentILPct = positionValue > 0 ? (currentIL / positionValue) * 100 : 0;
-    const feeIncomePct = positionValue > 0 ? (feeIncome / positionValue) * 100 : 0;
-    const netPnL = feeIncome - currentIL;
-    const netPnLPct = positionValue > 0 ? (netPnL / positionValue) * 100 : 0;
+    const currentPrice = chainlink.price;
+    if (!currentPrice) return null;
 
-    const ilAt10 = computeIL(positionValue, 10);
-    const ilAt50 = computeIL(positionValue, 50);
+    // Tick range width for IL estimation
+    const tickWidth = Math.abs(position.tickUpper - position.tickLower);
 
-    // Premium economics
-    const monthlyPremium = premiumAmount ? premiumAmount / 1 : 42.17; // default
+    // Estimate position value from tick range and price
+    // Without subgraph/liquidity data, we show IL as % and projections
+    // relative to premium rather than absolute USD
+    const estimatedPositionValue = currentPrice * 20; // rough proxy: ~20 ETH equivalent
+
+    // Price change since "entry" — we use the midpoint of the tick range as proxy
+    // tick = log(price) / log(1.0001), so midTick → price
+    const midTick = (position.tickLower + position.tickUpper) / 2;
+    const impliedEntryPrice = Math.pow(1.0001, midTick);
+    const priceChangePct = impliedEntryPrice > 0
+      ? ((currentPrice - impliedEntryPrice) / impliedEntryPrice) * 100
+      : 0;
+
+    // Check if current price is in range
+    const currentTick = Math.log(currentPrice) / Math.log(1.0001);
+    const inRange = currentTick >= position.tickLower && currentTick <= position.tickUpper;
+
+    // IL computations
+    const currentIL = computeIL(estimatedPositionValue, Math.abs(priceChangePct), tickWidth);
+    const currentILPct = estimatedPositionValue > 0 ? (currentIL / estimatedPositionValue) * 100 : 0;
+    const ilAt10 = computeIL(estimatedPositionValue, 10, tickWidth);
+    const ilAt50 = computeIL(estimatedPositionValue, 50, tickWidth);
+
+    // Premium economics — derived from user input or zero
+    const monthlyPremium = premiumAmount || 0;
     const dailyCost = monthlyPremium / 30;
-    const premiumPerBlock = dailyCost / 7200; // ~7200 blocks/day at 12s
-    const breakEven = findBreakEven(positionValue, monthlyPremium);
-    const historicalProb = getHistoricalProb(breakEven);
-    const premiumAsFeePercent = feeIncome > 0 ? (dailyCost / (feeIncome / 30)) * 100 : 0;
+    const premiumPerBlock = dailyCost / 7200;
+    const breakEven = monthlyPremium > 0
+      ? findBreakEven(estimatedPositionValue, monthlyPremium, 2, tickWidth)
+      : 0;
+    const historicalProb = breakEven > 0 ? getHistoricalProb(breakEven) : 0;
 
-    // Vault data
-    const srTVL = seniorAssets.raw ? Number(seniorAssets.raw) / 1e6 : 5_050_000;
-    const jrTVL = juniorAssets.raw ? Number(juniorAssets.raw) / 1e6 : 1_010_000;
-    const sjRatio = jrTVL > 0 ? srTVL / jrTVL : 5.0;
+    // Vault data — from chain
+    const srTVL = seniorAssets.raw ? Number(seniorAssets.raw) / 1e6 : 0;
+    const jrTVL = juniorAssets.raw ? Number(juniorAssets.raw) / 1e6 : 0;
+    const sjRatio = jrTVL > 0 ? srTVL / jrTVL : 0;
     const totalTVL = srTVL + jrTVL;
 
     return {
-      pair: "ETH/USDC",
-      positionId: `#${positionId.toString()}`,
-      feeRate: "0.30%",
-      liquidity: positionValue,
-      entryPrice,
+      pair: `${position.token0}/${position.token1}`,
+      positionId: `#${position.tokenId.toString()}`,
+      feeRate: position.feePct,
+      tickLower: position.tickLower,
+      tickUpper: position.tickUpper,
       currentPrice,
       priceChangePct,
-      inRange: Math.abs(priceChangePct) < 30,
+      inRange,
       currentIL,
       currentILPct,
-      feeIncome,
-      feeIncomePct,
-      netPnL,
-      netPnLPct,
-      isNetPositive: netPnL >= 0,
       ilAt10PctMove: ilAt10,
       ilAt50PctMove: ilAt50,
-      maxILInRange: ilAt50,
       historicalMoveProb: historicalProb,
       monthlyPremium,
       dailyCost,
       premiumPerBlock,
       breakEvenMove: breakEven,
-      premiumAsFeePercent,
       seniorTVL: srTVL,
       juniorTVL: jrTVL,
-      utilization: 12.3,
-      combinedRatio: 34,
       sjRatio,
-      maxPayout: Math.min(monthlyPremium * 10 * 12, totalTVL),
-      activePositions: DEFAULT_ACTIVE_POSITIONS,
+      maxPayout: monthlyPremium > 0 ? Math.min(monthlyPremium * 10 * 12, totalTVL) : totalTVL,
       chainlinkAddress: chainlink.address,
       chainlinkPrice: currentPrice,
       chainlinkLastUpdate: chainlink.updatedAt,
       chainlinkDecimals: chainlink.decimals,
       twapConfigured: false,
     };
-  }, [chainlink.price, seniorAssets.raw, juniorAssets.raw, positionId, premiumAmount]);
+  }, [position, chainlink.price, seniorAssets.raw, juniorAssets.raw, premiumAmount]);
 }

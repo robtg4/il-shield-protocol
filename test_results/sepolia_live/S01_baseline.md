@@ -1,0 +1,18 @@
+# S01: Mint USDC and Record Baseline
+
+**Timestamp:** 2026-04-04T02:22:49Z
+**Block:** 10585556
+**Tx Hash:** 0x6bbd59aa1f4aeb5e6e463c58d8a147f9aec0605a6fd92290050ce38b02690922
+**Etherscan:** https://sepolia.etherscan.io/tx/0x6bbd59aa1f4aeb5e6e463c58d8a147f9aec0605a6fd92290050ce38b02690922
+
+## Baseline State
+- USDC Balance: 6000000000000 [6e12]
+- Senior TVL: 5000000000000 [5e12]
+- Junior TVL: 1000000000000 [1e12]
+- Chainlink ETH/USD: 18446744073709583470 [1.844e19]
+205108708996 [2.051e11]
+1775267616 [1.775e9]
+1775267616 [1.775e9]
+18446744073709583470 [1.844e19]
+
+## Verdict: PASS

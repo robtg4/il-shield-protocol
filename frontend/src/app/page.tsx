@@ -28,6 +28,10 @@ import {
 } from "@/hooks/useILShield";
 import { DURATION_BLOCKS } from "@/lib/contracts";
 import { useChainAddresses } from "@/hooks/useILShield";
+import { usePositionAnalytics } from "@/hooks/usePositionAnalytics";
+import { ViewToggle, type ViewMode } from "@/components/analytics/ViewToggle";
+import { SimpleAnalytics } from "@/components/analytics/SimpleAnalytics";
+import { TechnicalAnalytics } from "@/components/analytics/TechnicalAnalytics";
 
 type Screen = "protect" | "active" | "settlement";
 
@@ -82,6 +86,23 @@ function HomeInner() {
   const [premiumAmount, setPremiumAmount] = useState("");
   const [ilpnId, setIlpnId] = useState<bigint>(BigInt(0));
   const [txStep, setTxStep] = useState<"idle" | "approve" | "register">("idle");
+
+  // Analytics view mode (persisted in localStorage)
+  const [viewMode, setViewMode] = useState<ViewMode>(() => {
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem("ilshield-view-mode") as ViewMode) || "simple";
+    }
+    return "simple";
+  });
+  const handleViewModeChange = useCallback((mode: ViewMode) => {
+    setViewMode(mode);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("ilshield-view-mode", mode);
+    }
+  }, []);
+
+  // Position analytics
+  const analytics = usePositionAnalytics(positionId, parseFloat(premiumAmount) || undefined);
 
   // Active screen state
   const [warmingPercent, setWarmingPercent] = useState(0);
@@ -224,6 +245,32 @@ function HomeInner() {
                   <div className="mt-1 text-[13px] text-text3">
                     Enter a Uniswap v4 position ID to protect
                   </div>
+                </div>
+
+                <ShieldDivider />
+
+                {/* Analytics Section */}
+                <div className="my-3">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[13px] text-text3 font-medium">Analytics</span>
+                    <ViewToggle mode={viewMode} onChange={handleViewModeChange} />
+                  </div>
+                  <div
+                    className="transition-all duration-200 ease-out"
+                    key={viewMode}
+                    style={{ animation: "fadeSlideIn 200ms ease" }}
+                  >
+                    {viewMode === "simple" ? (
+                      <SimpleAnalytics data={analytics} />
+                    ) : (
+                      <TechnicalAnalytics data={analytics} />
+                    )}
+                  </div>
+                  {!isConnected && (
+                    <div className="mt-2 text-center text-[11px] text-text3 italic">
+                      Example position — connect wallet for real data
+                    </div>
+                  )}
                 </div>
 
                 <ShieldDivider />

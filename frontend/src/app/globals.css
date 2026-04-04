@@ -50,6 +50,11 @@ body {
   font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
 }
 
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;

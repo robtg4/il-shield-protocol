@@ -1,66 +1,57 @@
 "use client";
 
-import { formatUSD } from "@/lib/scenarios";
-
 export function PositionHookCard({
   il,
-  netPnL,
-  isPositive,
   ilAt10Pct,
   historicalProb,
-  positionValue,
+  pair,
+  inRange,
 }: {
   il: number;
-  netPnL: number;
-  isPositive: boolean;
   ilAt10Pct: number;
   historicalProb: number;
-  positionValue: number;
+  pair: string;
+  inRange: boolean;
 }) {
   const probPct = Math.round(historicalProb * 100);
+  const [t0, t1] = pair.split("/");
 
   return (
     <div className="rounded-2xl bg-input p-4">
-      <div className="flex items-center gap-2 mb-4">
-        <div className="flex -space-x-1">
-          <div className="w-6 h-6 rounded-full bg-[#627EEA] flex items-center justify-center text-[10px] font-bold">E</div>
-          <div className="w-6 h-6 rounded-full bg-[#2775CA] flex items-center justify-center text-[10px] font-bold">U</div>
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <div className="flex -space-x-1">
+            <div className="w-6 h-6 rounded-full bg-[#627EEA] flex items-center justify-center text-[10px] font-bold">{t0?.[0]}</div>
+            <div className="w-6 h-6 rounded-full bg-[#2775CA] flex items-center justify-center text-[10px] font-bold">{t1?.[0]}</div>
+          </div>
+          <span className="text-sm text-text1 font-medium">{pair}</span>
         </div>
-        <span className="text-sm text-text1 font-medium">ETH / USDC</span>
-      </div>
-      <div className="text-[13px] text-text3 mb-1">
-        ${positionValue.toLocaleString()} position
+        <span className={`text-[12px] px-2 py-0.5 rounded-lg ${inRange ? "bg-green-dim text-green" : "bg-red-dim text-red"}`}>
+          {inRange ? "In range" : "Out of range"}
+        </span>
       </div>
 
       <div className="text-center py-4">
         <div className="text-[13px] text-text3 mb-1">
-          {il > 0 ? "You're currently losing" : "No impermanent loss"}
+          {il > 0 ? "Estimated impermanent loss" : "No impermanent loss detected"}
         </div>
         <div className={`font-mono text-[36px] font-semibold ${il > 0 ? "text-red" : "text-green"}`}>
           {il > 0 ? `-$${il.toFixed(0)}` : "$0"}
         </div>
         {il > 0 && (
-          <div className="text-[13px] text-text3">to impermanent loss</div>
+          <div className="text-[13px] text-text3">based on current price vs tick range midpoint</div>
         )}
       </div>
 
-      {/* Net P&L callout */}
-      <div className={`rounded-xl p-3 mb-3 ${isPositive ? "bg-green-dim" : "bg-red-dim"}`}>
-        <div className={`text-sm ${isPositive ? "text-green" : "text-red"}`}>
-          {isPositive
-            ? `Your fee income still covers it \u2014 you're net positive: ${formatUSD(netPnL)}`
-            : `Your fees can't cover this anymore \u2014 you're losing: ${formatUSD(netPnL)}`}
+      {/* Projection */}
+      {ilAt10Pct > 0 && (
+        <div className="rounded-xl bg-amber-dim p-3">
+          <div className="text-sm text-amber">
+            If the price moves another 10%, your IL could reach ${ilAt10Pct.toLocaleString(undefined, { maximumFractionDigits: 0 })}.
+            {probPct > 0 && ` This has happened in ${probPct}% of months since 2024.`}
+          </div>
         </div>
-      </div>
-
-      {/* Warning / projection */}
-      <div className="rounded-xl bg-amber-dim p-3">
-        <div className="text-sm text-amber">
-          {il > 0
-            ? `But if ETH drops another 10%, your IL jumps to $${ilAt10Pct.toLocaleString(undefined, { maximumFractionDigits: 0 })}+ and wipes out your fees. This has happened in ${probPct}% of months since 2024.`
-            : `If ETH moves \u00b110%, your IL could reach $${ilAt10Pct.toLocaleString(undefined, { maximumFractionDigits: 0 })}. This has happened in ${probPct}% of months since 2024.`}
-        </div>
-      </div>
+      )}
     </div>
   );
 }

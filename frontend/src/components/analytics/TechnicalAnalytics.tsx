@@ -7,14 +7,16 @@ import { PremiumEconomicsCard } from "./PremiumEconomicsCard";
 import { VaultHealthCard } from "./VaultHealthCard";
 
 export function TechnicalAnalytics({ data }: { data: PositionAnalytics }) {
+  const estimatedValue = data.currentPrice * 20;
+
   return (
     <div className="space-y-3">
       <PositionRiskCard data={data} />
       <ILCurveChart
-        positionValue={data.liquidity}
+        positionValue={estimatedValue}
         monthlyPremium={data.monthlyPremium}
       />
-      <PremiumEconomicsCard data={data} />
+      {data.monthlyPremium > 0 && <PremiumEconomicsCard data={data} />}
       <VaultHealthCard data={data} />
     </div>
   );

@@ -8,7 +8,6 @@ export function WhatItCostsCard({
   breakEven,
   vaultTVL,
   maxPayout,
-  positionValue,
   historicalProb,
 }: {
   dailyCost: number;
@@ -16,7 +15,6 @@ export function WhatItCostsCard({
   breakEven: number;
   vaultTVL: number;
   maxPayout: number;
-  positionValue: number;
   historicalProb: number;
 }) {
   const comparison = getCostComparison(monthly);
@@ -30,7 +28,7 @@ export function WhatItCostsCard({
         ${dailyCost.toFixed(2)} per day
       </div>
       <div className="text-sm text-text2 mt-1">
-        ${monthly.toFixed(0)}/month &mdash; {comparison} for a ${positionValue.toLocaleString()} position.
+        ${monthly.toFixed(0)}/month &mdash; {comparison}.
       </div>
 
       <div className="mt-4 space-y-3">

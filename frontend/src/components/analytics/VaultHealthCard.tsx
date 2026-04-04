@@ -3,9 +3,8 @@
 import type { PositionAnalytics } from "@/hooks/usePositionAnalytics";
 
 export function VaultHealthCard({ data }: { data: PositionAnalytics }) {
-  const srPct = 100; // simplified - no claims tracked client-side
-  const jrPct = 100;
   const totalCapacity = data.seniorTVL + data.juniorTVL;
+  const hasTVL = totalCapacity > 0;
 
   return (
     <div className="rounded-2xl bg-input p-4">
@@ -15,47 +14,42 @@ export function VaultHealthCard({ data }: { data: PositionAnalytics }) {
       <div className="mb-4">
         <div className="flex justify-between text-sm mb-1">
           <span className="text-text2">Senior tranche</span>
-          <span className="font-mono text-text1">${(data.seniorTVL).toLocaleString()}</span>
+          <span className="font-mono text-text1">
+            {hasTVL ? `$${data.seniorTVL.toLocaleString()}` : "\u2014"}
+          </span>
         </div>
         <div className="h-2 rounded-full bg-card overflow-hidden">
-          <div className="h-full rounded-full bg-green" style={{ width: `${srPct}%` }} />
+          <div className="h-full rounded-full bg-green" style={{ width: hasTVL ? "100%" : "0%" }} />
         </div>
-        <div className="flex justify-between text-[12px] text-text3 mt-1">
-          <span>8-12% target APY &middot; last-loss</span>
-          <span className="font-mono">Share price: 1.0004</span>
-        </div>
+        <div className="text-[12px] text-text3 mt-1">Last-loss position</div>
       </div>
 
       {/* Junior */}
       <div className="mb-4">
         <div className="flex justify-between text-sm mb-1">
           <span className="text-text2">Junior tranche</span>
-          <span className="font-mono text-text1">${(data.juniorTVL).toLocaleString()}</span>
+          <span className="font-mono text-text1">
+            {hasTVL ? `$${data.juniorTVL.toLocaleString()}` : "\u2014"}
+          </span>
         </div>
         <div className="h-2 rounded-full bg-card overflow-hidden">
-          <div className="h-full rounded-full bg-amber" style={{ width: `${jrPct}%` }} />
+          <div className="h-full rounded-full bg-amber" style={{ width: hasTVL ? "100%" : "0%" }} />
         </div>
-        <div className="flex justify-between text-[12px] text-text3 mt-1">
-          <span>20-50% target APY &middot; first-loss</span>
-          <span className="font-mono">Share price: 1.0021</span>
-        </div>
+        <div className="text-[12px] text-text3 mt-1">First-loss position</div>
       </div>
 
       {/* Stats */}
       <div className="space-y-1.5 text-[12px] mb-4">
-        <Row label="Utilization" value={`${data.utilization}%`} />
-        <Row label="Active positions" value={data.activePositions.toString()} />
-        <Row label="Combined ratio" value={`${data.combinedRatio}%`} />
-        <Row label="S/J ratio" value={`${data.sjRatio.toFixed(1)}:1`} />
-        <Row label="Claim capacity" value={`$${totalCapacity.toLocaleString()}`} />
-        <Row label="Your max payout" value={`$${data.maxPayout.toLocaleString()} (10x cap)`} />
+        {data.sjRatio > 0 && <Row label="S/J ratio" value={`${data.sjRatio.toFixed(1)}:1`} />}
+        <Row label="Claim capacity" value={hasTVL ? `$${totalCapacity.toLocaleString()}` : "\u2014"} />
+        <Row label="Your max payout" value={data.maxPayout > 0 ? `$${data.maxPayout.toLocaleString()}` : "\u2014"} />
       </div>
 
       {/* Oracle */}
       <div className="rounded-xl bg-card p-3 space-y-1 text-[12px]">
         <Row label="Oracle" value="Chainlink ETH/USD" />
-        <Row label="Feed" value={`${data.chainlinkAddress.slice(0, 6)}...${data.chainlinkAddress.slice(-5)} (live, ${data.chainlinkDecimals} dec)`} />
-        <Row label="Last update" value={`${data.chainlinkLastUpdate} sec ago`} />
+        <Row label="Feed" value={`${data.chainlinkAddress.slice(0, 6)}...${data.chainlinkAddress.slice(-5)} (${data.chainlinkDecimals} dec)`} />
+        <Row label="Last update" value={data.chainlinkLastUpdate > 0 ? `${data.chainlinkLastUpdate} sec ago` : "\u2014"} />
         <Row label="TWAP" value={data.twapConfigured ? "configured" : "not configured"} />
       </div>
     </div>

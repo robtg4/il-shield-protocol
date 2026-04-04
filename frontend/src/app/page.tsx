@@ -29,9 +29,11 @@ import {
 import { DURATION_BLOCKS } from "@/lib/contracts";
 import { useChainAddresses } from "@/hooks/useILShield";
 import { usePositionAnalytics } from "@/hooks/usePositionAnalytics";
+import { useUserPositions } from "@/hooks/useUserPositions";
 import { ViewToggle, type ViewMode } from "@/components/analytics/ViewToggle";
 import { SimpleAnalytics } from "@/components/analytics/SimpleAnalytics";
 import { TechnicalAnalytics } from "@/components/analytics/TechnicalAnalytics";
+import { PositionSelector } from "@/components/PositionSelector";
 
 type Screen = "protect" | "active" | "settlement";
 
@@ -49,10 +51,23 @@ function HomeInner() {
   const addrs = useChainAddresses();
   const searchParams = useSearchParams();
   const positionIdParam = searchParams.get("positionId");
-  const positionId = useMemo(
-    () => (positionIdParam ? BigInt(positionIdParam) : BigInt(1)),
-    [positionIdParam]
-  );
+
+  // User positions from on-chain
+  const { positions: userPositions, isLoading: positionsLoading } = useUserPositions();
+  const [selectedPositionId, setSelectedPositionId] = useState<bigint | null>(null);
+
+  // Auto-select from URL param or first position
+  useEffect(() => {
+    if (positionIdParam) {
+      setSelectedPositionId(BigInt(positionIdParam));
+    } else if (userPositions.length > 0 && selectedPositionId === null) {
+      setSelectedPositionId(userPositions[0].tokenId);
+    }
+  }, [positionIdParam, userPositions, selectedPositionId]);
+
+  const selectedPosition = userPositions.find((p) => p.tokenId === selectedPositionId) ?? null;
+  const positionId = selectedPositionId ?? BigInt(1);
+
   const usdcBalance = useUSDCBalance();
   const usdcAllowance = useUSDCAllowance();
   const seniorAssets = useVaultTotalAssets("senior");
@@ -101,8 +116,8 @@ function HomeInner() {
     }
   }, []);
 
-  // Position analytics
-  const analytics = usePositionAnalytics(positionId, parseFloat(premiumAmount) || undefined);
+  // Position analytics — driven by selected position, no static data
+  const analytics = usePositionAnalytics(selectedPosition, parseFloat(premiumAmount) || undefined);
 
   // Active screen state
   const [warmingPercent, setWarmingPercent] = useState(0);
@@ -236,19 +251,29 @@ function HomeInner() {
 
                 {/* ── LEFT: Transaction Card ── */}
                 <div className="w-full lg:w-[440px] lg:shrink-0 rounded-3xl border border-card-border bg-card p-4">
-                  {/* Position */}
+                  {/* Position selector */}
                   <div className="rounded-2xl bg-input p-3">
-                    <div className="mb-1.5 flex items-center justify-between">
-                      <span className="text-[13px] text-text3">Position</span>
-                      <StatusBadge status="in-range" />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[28px] text-text1">—</span>
-                      <TokenPairSelector token0="ETH" token1="USDC" />
-                    </div>
-                    <div className="mt-1 text-[13px] text-text3">
-                      Enter a Uniswap v4 position ID to protect
-                    </div>
+                    <div className="mb-1.5 text-[13px] text-text3">Position</div>
+                    {isConnected && userPositions.length > 0 ? (
+                      <PositionSelector
+                        positions={userPositions}
+                        selected={selectedPositionId}
+                        onSelect={setSelectedPositionId}
+                        isLoading={positionsLoading}
+                      />
+                    ) : isConnected && !positionsLoading ? (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-text3">No Uniswap v4 positions found</span>
+                        <TokenPairSelector token0="ETH" token1="USDC" />
+                      </div>
+                    ) : !isConnected ? (
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-text3">Connect wallet to select a position</span>
+                        <TokenPairSelector token0="ETH" token1="USDC" />
+                      </div>
+                    ) : (
+                      <div className="h-8 w-40 animate-pulse rounded bg-card" />
+                    )}
                   </div>
 
                   <ShieldDivider />
@@ -316,22 +341,37 @@ function HomeInner() {
                 <div className="w-full lg:flex-1 rounded-3xl border border-card-border bg-card p-4">
                   <div className="flex items-center justify-between mb-4">
                     <span className="text-sm text-text1 font-medium">Position Analytics</span>
-                    <ViewToggle mode={viewMode} onChange={handleViewModeChange} />
+                    {analytics && <ViewToggle mode={viewMode} onChange={handleViewModeChange} />}
                   </div>
-                  <div
-                    className="transition-all duration-200 ease-out"
-                    key={viewMode}
-                    style={{ animation: "fadeSlideIn 200ms ease" }}
-                  >
-                    {viewMode === "simple" ? (
-                      <SimpleAnalytics data={analytics} />
-                    ) : (
-                      <TechnicalAnalytics data={analytics} />
-                    )}
-                  </div>
-                  {!isConnected && (
-                    <div className="mt-3 text-center text-[12px] text-text3 italic">
-                      Example position — connect wallet for real data
+                  {analytics ? (
+                    <div
+                      className="transition-all duration-200 ease-out"
+                      key={viewMode}
+                      style={{ animation: "fadeSlideIn 200ms ease" }}
+                    >
+                      {viewMode === "simple" ? (
+                        <SimpleAnalytics data={analytics} />
+                      ) : (
+                        <TechnicalAnalytics data={analytics} />
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-12 text-center">
+                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.5" className="mb-3">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                      </svg>
+                      <div className="text-sm text-text2 mb-1">
+                        {!isConnected
+                          ? "Connect your wallet to see analytics"
+                          : userPositions.length === 0
+                            ? "No positions detected"
+                            : "Select a position to view analytics"}
+                      </div>
+                      <div className="text-[12px] text-text3">
+                        {!isConnected
+                          ? "Analytics are driven by your on-chain position data"
+                          : "Open a Uniswap v4 LP position, then select it here"}
+                      </div>
                     </div>
                   )}
                 </div>

@@ -8,6 +8,11 @@ interface IStateView {
         external
         view
         returns (uint160 sqrtPriceX96, int24 tick, uint24 protocolFee, uint24 lpFee);
+
+    function getPositionInfo(bytes32 poolId, address owner, int24 tickLower, int24 tickUpper, bytes32 salt)
+        external
+        view
+        returns (uint128 liquidity, uint256 feeGrowthInside0LastX128, uint256 feeGrowthInside1LastX128);
 }
 
 interface IV4PositionManager {
@@ -15,8 +20,8 @@ interface IV4PositionManager {
         external
         view
         returns (
-            bytes32 poolKeyEncoded, // packed PoolKey (currency0, currency1, fee, tickSpacing, hooks)
-            uint256 positionInfo    // packed (poolId | tickUpper | tickLower | hasSubscriber)
+            bytes32 poolKeyEncoded,
+            uint256 positionInfo
         );
 }
 
@@ -32,6 +37,7 @@ contract UniswapV4Adapter is IPositionAdapter {
     }
 
     function getPosition(uint256 positionId) external view override returns (PositionData memory data) {
+        // solhint-disable-next-line no-unused-vars
         (bytes32 poolKeyEncoded, uint256 packedInfo) = positionManager.getPoolAndPositionInfo(positionId);
 
         // Decode packed position info: poolId(200) | tickUpper(24) | tickLower(24) | hasSubscriber(8)
@@ -42,16 +48,21 @@ contract UniswapV4Adapter is IPositionAdapter {
         // Read current price from StateView
         (uint160 sqrtPriceX96,,,) = stateView.getSlot0(poolId);
 
-        // Note: v4 PoolKey contains (currency0, currency1, fee, tickSpacing, hooks)
-        // but getPoolAndPositionInfo returns it as a packed bytes32.
-        // For IL computation we primarily need sqrtPriceX96, ticks, and liquidity.
-        // Liquidity is not directly returned by getPoolAndPositionInfo — it requires
-        // a separate positionInfo() call. For now we set liquidity from the pool.
+        // Read position liquidity from StateView
+        // In v4, the PositionManager owns the position in the PoolManager
+        (uint128 liquidity,,) = stateView.getPositionInfo(
+            poolId,
+            address(positionManager), // owner is the PositionManager
+            tickLower,
+            tickUpper,
+            bytes32(0) // default salt
+        );
+
         data = PositionData({
             sqrtPriceX96: sqrtPriceX96,
             tickLower: tickLower,
             tickUpper: tickUpper,
-            liquidity: 0, // v4 requires separate liquidity read — set by caller if needed
+            liquidity: liquidity,
             token0: address(0),
             token1: address(0),
             feeRate: 0,

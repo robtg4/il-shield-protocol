@@ -92,6 +92,7 @@ export const IL_SHIELD_CORE_ABI = [
     type: "function",
     stateMutability: "nonpayable",
     inputs: [
+      { name: "adapter", type: "address" },
       { name: "positionId", type: "uint256" },
       { name: "coverageTier", type: "uint8" },
       { name: "durationBlocks", type: "uint48" },

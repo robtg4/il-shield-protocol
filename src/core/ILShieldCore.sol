@@ -8,6 +8,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ILMath} from "../libraries/ILMath.sol";
 import {PremiumMath} from "../libraries/PremiumMath.sol";
+import {IPositionAdapter} from "../interfaces/IPositionAdapter.sol";
 import {ILPNRegistry} from "./ILPNRegistry.sol";
 import {SeniorVault} from "./SeniorVault.sol";
 import {JuniorVault} from "./JuniorVault.sol";
@@ -60,6 +61,10 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
     uint256 public treasuryShare;  // 1000 = 10%
     uint256 public referralShare;  // 500  = 5%
 
+    // ─── Adapter Registry ─────────────────────────────────────────────────
+
+    mapping(address => bool) public approvedAdapters;
+
     // ─── Contract References ─────────────────────────────────────────────
 
     SeniorVault public seniorVault;
@@ -81,6 +86,8 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
     error SettlementPriceDisputed(uint160 chainlinkPrice, uint160 twapPrice, uint256 divergenceBps);
     error PremiumExhausted();
     error InvalidShares();
+    error AdapterNotApproved();
+    error EmptyPosition();
 
     // ─── Events ──────────────────────────────────────────────────────────
 
@@ -133,13 +140,74 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
 
     // ─── Registration ────────────────────────────────────────────────────
 
-    /// @notice Register an existing Uniswap v4 position for IL protection
-    /// @param positionId Uniswap v4 position NFT token ID (for future integration)
+    /// @notice Register an existing LP position for IL protection (multi-DEX)
+    /// @param adapter Approved DEX adapter contract address
+    /// @param positionId DEX-specific position NFT token ID
     /// @param coverageTier 0=50%, 1=75%, 2=100%
     /// @param durationBlocks Coverage duration in blocks
     /// @param premiumDeposit USDC amount deposited to fund streaming premiums
     /// @param referrer Integration partner address (or address(0))
     /// @return ilpnId The minted ILPN token ID
+    function register(
+        address adapter,
+        uint256 positionId,
+        uint8 coverageTier,
+        uint48 durationBlocks,
+        uint256 premiumDeposit,
+        address referrer
+    ) external nonReentrant whenNotPaused returns (uint256 ilpnId) {
+        if (!approvedAdapters[adapter]) revert AdapterNotApproved();
+        if (coverageTier > 2) revert InvalidCoverageTier();
+        if (durationBlocks < minCoverageDuration) revert DurationTooShort();
+        if (premiumDeposit == 0) revert InsufficientPremium();
+
+        // Read position data from the DEX via adapter
+        IPositionAdapter.PositionData memory pos = IPositionAdapter(adapter).getPosition(positionId);
+        if (pos.liquidity == 0 && pos.sqrtPriceX96 == 0) revert EmptyPosition();
+
+        // Transfer premium deposit from LP
+        usdc.safeTransferFrom(msg.sender, address(this), premiumDeposit);
+
+        // Assign ILPN ID
+        ilpnId = nextPositionId++;
+
+        bytes32 poolId = bytes32(uint256(uint160(pos.pool)));
+
+        // Compute premium rate from pricing oracle
+        uint256 premiumRate = pricingOracle.computePremiumRate(poolId, pos.tickLower, pos.tickUpper, coverageTier);
+
+        // Ensure premium deposit covers at least minimum duration
+        uint256 minPremium = premiumRate * durationBlocks;
+        if (premiumDeposit < minPremium && premiumRate > 0) revert InsufficientPremium();
+
+        uint48 startBlock = uint48(block.number) + uint48(warmingPeriodBlocks);
+
+        positions[ilpnId] = Position({
+            poolId: poolId,
+            entrySqrtPriceX96: pos.sqrtPriceX96,
+            tickLower: pos.tickLower,
+            tickUpper: pos.tickUpper,
+            liquidity: pos.liquidity,
+            coverageTier: coverageTier,
+            coverageStartBlock: startBlock,
+            coverageEndBlock: startBlock + durationBlocks,
+            premiumBalance: premiumDeposit,
+            premiumRatePerBlock: premiumRate,
+            lastPremiumBlock: uint256(block.number),
+            maxPayout: premiumDeposit * 10,
+            settled: false,
+            owner: msg.sender,
+            referrer: referrer
+        });
+
+        // Mint ILPN
+        ilpnRegistry.mint(msg.sender, ilpnId);
+        ilpnRegistry.setMetadata(ilpnId, poolId, coverageTier, startBlock, startBlock + durationBlocks);
+
+        emit PositionRegistered(ilpnId, msg.sender, poolId, coverageTier, premiumDeposit);
+    }
+
+    /// @notice Legacy register without adapter (backward compatible for tests)
     function register(
         uint256 positionId,
         uint8 coverageTier,
@@ -151,23 +219,15 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
         if (durationBlocks < minCoverageDuration) revert DurationTooShort();
         if (premiumDeposit == 0) revert InsufficientPremium();
 
-        // Transfer premium deposit from LP
         usdc.safeTransferFrom(msg.sender, address(this), premiumDeposit);
 
-        // Assign ILPN ID
         ilpnId = nextPositionId++;
-
-        // For now, use positionId as poolId proxy and set mock entry state
-        // In production, this reads from Uniswap PositionManager
         bytes32 poolId = bytes32(positionId);
 
-        // Compute premium rate from pricing oracle
-        // Default tick range for initial implementation
-        int24 tickLower = -887220; // ~full range
+        int24 tickLower = -887220;
         int24 tickUpper = 887220;
         uint256 premiumRate = pricingOracle.computePremiumRate(poolId, tickLower, tickUpper, coverageTier);
 
-        // Ensure premium deposit covers at least minimum duration
         uint256 minPremium = premiumRate * durationBlocks;
         if (premiumDeposit < minPremium && premiumRate > 0) revert InsufficientPremium();
 
@@ -175,23 +235,22 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
 
         positions[ilpnId] = Position({
             poolId: poolId,
-            entrySqrtPriceX96: 0, // Set by oracle or hook in production
+            entrySqrtPriceX96: 0,
             tickLower: tickLower,
             tickUpper: tickUpper,
-            liquidity: 0, // Set from PositionManager in production
+            liquidity: 0,
             coverageTier: coverageTier,
             coverageStartBlock: startBlock,
             coverageEndBlock: startBlock + durationBlocks,
             premiumBalance: premiumDeposit,
             premiumRatePerBlock: premiumRate,
             lastPremiumBlock: uint256(block.number),
-            maxPayout: premiumDeposit * 10, // 10x premium as max payout cap
+            maxPayout: premiumDeposit * 10,
             settled: false,
             owner: msg.sender,
             referrer: referrer
         });
 
-        // Mint ILPN
         ilpnRegistry.mint(msg.sender, ilpnId);
         ilpnRegistry.setMetadata(ilpnId, poolId, coverageTier, startBlock, startBlock + durationBlocks);
 
@@ -416,6 +475,10 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
     }
 
     // ─── Governance ──────────────────────────────────────────────────────
+
+    function approveAdapter(address adapter, bool approved) external onlyRole(GOVERNANCE_ROLE) {
+        approvedAdapters[adapter] = approved;
+    }
 
     function setWarmingPeriodBlocks(uint256 _blocks) external onlyRole(GOVERNANCE_ROLE) {
         warmingPeriodBlocks = _blocks;

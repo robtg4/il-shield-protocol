@@ -34,6 +34,10 @@ import { ViewToggle, type ViewMode } from "@/components/analytics/ViewToggle";
 import { SimpleAnalytics } from "@/components/analytics/SimpleAnalytics";
 import { TechnicalAnalytics } from "@/components/analytics/TechnicalAnalytics";
 import { PositionSelector } from "@/components/PositionSelector";
+import { DexSelector } from "@/components/DexSelector";
+import { DexLogo } from "@/components/DexLogo";
+import { SupportedDexRow } from "@/components/SupportedDexRow";
+import { getDexesForChain, type DexConfig } from "@/config/dex-registry";
 
 type Screen = "protect" | "active" | "settlement";
 
@@ -67,6 +71,15 @@ function HomeInner() {
 
   const selectedPosition = userPositions.find((p) => p.tokenId === selectedPositionId) ?? null;
   const positionId = selectedPositionId ?? BigInt(1);
+
+  // DEX selection
+  const availableDexes = useMemo(() => getDexesForChain(chainId), [chainId]);
+  const [selectedDex, setSelectedDex] = useState<DexConfig | null>(null);
+  useEffect(() => {
+    if (availableDexes.length > 0 && !selectedDex) {
+      setSelectedDex(availableDexes[0]);
+    }
+  }, [availableDexes, selectedDex]);
 
   const usdcBalance = useUSDCBalance();
   const usdcAllowance = useUSDCAllowance();
@@ -251,9 +264,23 @@ function HomeInner() {
 
                 {/* ── LEFT: Transaction Card ── */}
                 <div className="w-full lg:w-[440px] lg:shrink-0 rounded-3xl border border-card-border bg-card p-4">
+                  {/* DEX selector */}
+                  {availableDexes.length > 0 && selectedDex && (
+                    <div className="mb-3">
+                      <DexSelector
+                        available={availableDexes}
+                        selected={selectedDex}
+                        onSelect={setSelectedDex}
+                      />
+                    </div>
+                  )}
+
                   {/* Position selector */}
-                  <div className="rounded-2xl bg-input p-3">
-                    <div className="mb-1.5 text-[13px] text-text3">Position</div>
+                  <div className="rounded-2xl bg-input p-3" style={selectedDex ? { borderLeft: `3px solid ${selectedDex.color}20` } : undefined}>
+                    <div className="mb-1.5 flex items-center gap-2 text-[13px] text-text3">
+                      {selectedDex && <DexLogo dexId={selectedDex.id} size={14} />}
+                      <span>Position{selectedDex ? ` on ${selectedDex.name}` : ""}</span>
+                    </div>
                     {isConnected && userPositions.length > 0 ? (
                       <PositionSelector
                         positions={userPositions}
@@ -377,10 +404,9 @@ function HomeInner() {
                 </div>
               </div>
 
-              <p className="mt-5 max-w-[1000px] text-center text-sm leading-relaxed text-text2">
-                Protect LP positions with{" "}
-                <span className="text-pink">zero app fees</span> on Ethereum Sepolia and Unichain Sepolia.
-              </p>
+              <div className="mt-6">
+                <SupportedDexRow />
+              </div>
 
               <ScrollIndicator />
 

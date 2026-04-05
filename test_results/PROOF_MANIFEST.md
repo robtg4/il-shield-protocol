@@ -1,47 +1,44 @@
-# IL Shield Test Proof Manifest
+# IL Shield — Adapter Upgrade Manifest
 
-Generated: 2026-04-03T18:15:07Z
-Commit: 95e8b7e77888fefcb2b7b0af9a5312ee43f597d0
-Branch: main
+Generated: 2026-04-05T17:32:22Z
+Commit: 97334b24a1cfad66cb0aa27ae3ffc3b880bc7761
 
-## Fork Suite
+## Adapter Unit
 ```
-Ran 7 test suites in 4.91s (7.44s CPU time): 73 tests passed, 0 failed, 0 skipped (73 total tests)
-```
-
-## CI Suite
-```
-Ran 16 test suites in 186.80s (382.07s CPU time): 143 tests passed, 0 failed, 0 skipped (143 total tests)
+Ran 1 test suite in 19.52ms (2.91ms CPU time): 14 tests passed, 0 failed, 0 skipped (14 total tests)
 ```
 
-## Chainlink Anchor
+## Adapter Fork
 ```
-  Chainlink ETH/USD: 204832230682
-  Fork (block): 10583110
-```
-
-## Key Logged Values
-```
-  3.2 Total payout across 20 claims: 725751258520
-  3.2 Junior after: 99299248741480
-  3.2 Senior after: 100000000000
-  4.1 IL with max liquidity: 3097595157313504429582223639544870861
-  4.1 Payout (capped at vault): 12250000000
-  F01 Pool initialized at tick: 0
-  F01 Initial sqrtPriceX96: 79228162514264337593543950336
-  F01 Liquidity added: tickLower=-600, tickUpper=600, delta=1e18
-  F01 Swap executed: zeroForOne=true, amountSpecified=-0.001e18
-  F01 Post-swap sqrtPriceX96: 79149250711305166342700278159
-  F01 IL amount: 992029906280
+Ran 1 test suite in 1.01s (895.70ms CPU time): 6 tests passed, 0 failed, 0 skipped (6 total tests)
 ```
 
-## Coverage (core contracts)
+## Regression CI
 ```
-| src/core/ILPNRegistry.sol                  | 57.69% (15/26)    | 48.15% (13/27)    | 100.00% (1/1)   | 75.00% (6/8)     |
-| src/core/ILShieldCore.sol                  | 97.40% (150/154)  | 96.86% (185/191)  | 92.86% (26/28)  | 94.74% (18/19)   |
-| src/core/JuniorVault.sol                   | 76.92% (40/52)    | 81.82% (45/55)    | 83.33% (5/6)    | 66.67% (10/15)   |
-| src/core/PricingOracle.sol                 | 100.00% (64/64)   | 97.22% (70/72)    | 75.00% (6/8)    | 100.00% (15/15)  |
-| src/core/SeniorVault.sol                   | 80.33% (49/61)    | 82.81% (53/64)    | 66.67% (4/6)    | 76.47% (13/17)   |
+Ran 18 test suites in 195.83s (415.42s CPU time): 162 tests passed, 0 failed, 0 skipped (162 total tests)
+```
+
+## Regression Fork
+```
+Ran 8 test suites in 5.53s (7.20s CPU time): 79 tests passed, 0 failed, 0 skipped (79 total tests)
+```
+
+## Coverage
+```
+| src/core/ILShieldCore.sol                  | 97.70% (170/174)  | 97.76% (218/223)  | 97.06% (33/34)  | 95.24% (20/21)   |
+```
+
+## Key Values
+```
+  Chainlink ETH/USD: 205511000000
+  G01 liquidity: 1000000000000
+  G02 entrySqrtPriceX96: 79228162514264337593543950336
+  G02 liquidity: 1000000000000
+  Chainlink ETH/USD: 205511000000
+  G05 Junior before: 25000000000
+  G05 Junior after: 19883110274
+  G05 Senior before: 100000000000
+  G05 Senior after: 100000000000
 ```
 
 ## Failures

@@ -1,0 +1,46 @@
+No files changed, compilation skipped
+
+Ran 14 tests for test/unit/AdapterIntegration.t.sol:AdapterIntegration
+[PASS] test_adapter_processStreaming_settledPosition() (gas: 372093)
+[PASS] test_adapter_register_durationTooShort_reverts() (gas: 55390)
+[PASS] test_adapter_register_insufficientPremiumForRate_reverts() (gas: 164216)
+[PASS] test_adapter_register_invalidTier_reverts() (gas: 53290)
+[PASS] test_adapter_register_zeroPremium_reverts() (gas: 26287)
+[PASS] test_adapter_settle_juniorOverflowToSenior() (gas: 484902)
+Logs:
+  Junior before: 1000000000
+  Senior before: 50000000000000
+  Senior after: 49996100000000
+
+[PASS] test_existing_functions_unchanged() (gas: 365914)
+Logs:
+  cancelProtection refund: 600000000
+
+[PASS] test_register_approvedAdapter_succeeds() (gas: 411358)
+Logs:
+  entrySqrtPriceX96: 79228162514264337593543950336
+  liquidity: 1000000000000
+  tickLower: -6000
+  tickUpper: 6000
+
+[PASS] test_register_revokedAdapter_reverts() (gas: 427484)
+[PASS] test_register_unapprovedAdapter_reverts() (gas: 455786)
+[PASS] test_register_zeroLiquidity_reverts() (gas: 242891)
+[PASS] test_settle_adapterPosition_nonZeroIL() (gas: 397287)
+Logs:
+  payout (adapter, 20% move): 4900000000
+
+[PASS] test_settle_tierRatios_realData() (gas: 895663)
+Logs:
+  payout tier0 (50%): 4460476871
+  payout tier1 (75%): 6690715307
+  payout tier2 (100%): 8920953743
+
+[PASS] test_settle_twoAdapters_differentPayouts() (gas: 659146)
+Logs:
+  payout A (entry 1:1): 36287562926
+  payout B (entry 1.2:1): 8420679289
+
+Suite result: ok. 14 passed; 0 failed; 0 skipped; finished in 2.91ms (5.97ms CPU time)
+
+Ran 1 test suite in 19.52ms (2.91ms CPU time): 14 tests passed, 0 failed, 0 skipped (14 total tests)

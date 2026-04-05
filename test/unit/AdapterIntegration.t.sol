@@ -234,6 +234,91 @@ contract AdapterIntegration is Test {
         emit log_named_uint("payout B (entry 1.2:1)", payoutB);
     }
 
+    // ═══ Branch coverage: adapter register() validation paths ═══
+
+    function test_adapter_register_invalidTier_reverts() public {
+        vm.startPrank(alice);
+        usdc.approve(address(core), 500e6);
+        vm.expectRevert(ILShieldCore.InvalidCoverageTier.selector);
+        core.register(address(adapterA), 1, 3, 50_400, 500e6, address(0)); // tier 3
+        vm.stopPrank();
+    }
+
+    function test_adapter_register_durationTooShort_reverts() public {
+        vm.startPrank(alice);
+        usdc.approve(address(core), 500e6);
+        vm.expectRevert(ILShieldCore.DurationTooShort.selector);
+        core.register(address(adapterA), 1, 2, 100, 500e6, address(0)); // 100 < 50400
+        vm.stopPrank();
+    }
+
+    function test_adapter_register_zeroPremium_reverts() public {
+        vm.startPrank(alice);
+        vm.expectRevert(ILShieldCore.InsufficientPremium.selector);
+        core.register(address(adapterA), 1, 2, 50_400, 0, address(0));
+        vm.stopPrank();
+    }
+
+    function test_adapter_register_insufficientPremiumForRate_reverts() public {
+        // Configure pool with high vol → non-zero premium rate
+        oracle.configurePool(POOL_ID, address(feed), address(0), 0.70e18, 3000, 0);
+        oracle.setCLevel(1e18);
+
+        vm.startPrank(alice);
+        usdc.approve(address(core), 1);
+        vm.expectRevert(ILShieldCore.InsufficientPremium.selector);
+        core.register(address(adapterA), 1, 2, 50_400, 1, address(0)); // 1 wei < rate * duration
+        vm.stopPrank();
+    }
+
+    function test_adapter_settle_juniorOverflowToSenior() public {
+        // First: drain most of Junior so next claim overflows to Senior
+        juniorVault.grantRole(CORE_ROLE, address(this));
+        juniorVault.withdrawForClaim(9_999_000e6, address(0xDEAD));
+        uint256 juniorBefore = juniorVault.totalAssets(); // ~1000e6 left
+
+        // Register via adapter with IL that will exceed remaining Junior
+        vm.startPrank(alice);
+        usdc.approve(address(core), 500e6);
+        uint256 id = core.register(address(adapterA), 1, 2, 50_400, 500e6, address(0));
+        vm.stopPrank();
+
+        vm.roll(block.number + 10);
+
+        uint256 seniorBefore = seniorVault.totalAssets();
+        uint256 bal = usdc.balanceOf(alice);
+        vm.prank(alice);
+        core.settle(id, SQRT_1_2, ""); // 20% move → IL ~8.9B > remaining Junior ~1B
+
+        uint256 payout = usdc.balanceOf(alice) - bal;
+        uint256 juniorAfter = juniorVault.totalAssets();
+        uint256 seniorAfter = seniorVault.totalAssets();
+
+        assertEq(juniorAfter, 0, "Junior fully drained");
+        assertLt(seniorAfter, seniorBefore, "Senior drawn down (overflow)");
+        assertGt(payout, 0, "LP received payout");
+        emit log_named_uint("Junior before", juniorBefore);
+        emit log_named_uint("Senior before", seniorBefore);
+        emit log_named_uint("Senior after", seniorVault.totalAssets());
+    }
+
+    function test_adapter_processStreaming_settledPosition() public {
+        vm.startPrank(alice);
+        usdc.approve(address(core), 500e6);
+        uint256 id = core.register(address(adapterA), 1, 2, 50_400, 500e6, address(0));
+        vm.stopPrank();
+
+        vm.roll(block.number + 10);
+        vm.prank(alice);
+        core.settle(id, SQRT_1_1, "");
+
+        // processStreaming on settled position — should not revert, just skip
+        vm.roll(block.number + 100);
+        uint256[] memory ids = new uint256[](1);
+        ids[0] = id;
+        core.processStreaming(ids); // hits settled check in _deductAndDistributePremium
+    }
+
     function test_settle_tierRatios_realData() public {
         // Large premium → high maxPayout so tiers aren't capped equally
         vm.startPrank(alice);

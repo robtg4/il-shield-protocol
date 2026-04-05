@@ -1,0 +1,43 @@
+Compiling 1 files with Solc 0.8.26
+Solc 0.8.26 finished in 12.78s
+Compiler run successful!
+
+Ran 6 tests for test/fork/PhaseG_Adapter.t.sol:PhaseG_Adapter
+[PASS] test_00_chainlinkAnchor() (gas: 24033)
+Logs:
+  Chainlink ETH/USD: 205511000000
+  Fork (block): 10596562
+
+[PASS] test_G01_adapterReadsPosition() (gas: 20226)
+Logs:
+  G01 sqrtPriceX96: 79228162514264337593543950336
+  G01 liquidity: 1000000000000
+  G01 tickLower: 16771216
+  G01 tickUpper: 6000
+  G01 pool: 0x0000000000000000000000000000000000000aDA
+
+[PASS] test_G02_registerStoresRealData() (gas: 402734)
+Logs:
+  G02 entrySqrtPriceX96: 79228162514264337593543950336
+  G02 liquidity: 1000000000000
+
+[PASS] test_G03_settleNonZeroPayout() (gas: 414372)
+Logs:
+  G03 IL (computed): 5221316046
+  G03 payout: 5116889726
+
+[PASS] test_G04_chainlinkAnchor() (gas: 23280)
+Logs:
+  Chainlink ETH/USD: 205511000000
+  Fork (block): 10596562
+
+[PASS] test_G05_vaultPayoutFromJunior() (gas: 424472)
+Logs:
+  G05 Junior before: 25000000000
+  G05 Junior after: 19883110274
+  G05 Senior before: 100000000000
+  G05 Senior after: 100000000000
+
+Suite result: ok. 6 passed; 0 failed; 0 skipped; finished in 895.70ms (145.76ms CPU time)
+
+Ran 1 test suite in 1.01s (895.70ms CPU time): 6 tests passed, 0 failed, 0 skipped (6 total tests)

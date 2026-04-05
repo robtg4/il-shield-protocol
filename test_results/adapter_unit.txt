@@ -1,0 +1,35 @@
+No files changed, compilation skipped
+
+Ran 8 tests for test/unit/AdapterIntegration.t.sol:AdapterIntegration
+[PASS] test_existing_functions_unchanged() (gas: 365776)
+Logs:
+  cancelProtection refund: 600000000
+
+[PASS] test_register_approvedAdapter_succeeds() (gas: 411248)
+Logs:
+  entrySqrtPriceX96: 79228162514264337593543950336
+  liquidity: 1000000000000
+  tickLower: -6000
+  tickUpper: 6000
+
+[PASS] test_register_revokedAdapter_reverts() (gas: 427462)
+[PASS] test_register_unapprovedAdapter_reverts() (gas: 455698)
+[PASS] test_register_zeroLiquidity_reverts() (gas: 242803)
+[PASS] test_settle_adapterPosition_nonZeroIL() (gas: 397199)
+Logs:
+  payout (adapter, 20% move): 4900000000
+
+[PASS] test_settle_tierRatios_realData() (gas: 895592)
+Logs:
+  payout tier0 (50%): 4460476871
+  payout tier1 (75%): 6690715307
+  payout tier2 (100%): 8920953743
+
+[PASS] test_settle_twoAdapters_differentPayouts() (gas: 659058)
+Logs:
+  payout A (entry 1:1): 36287562926
+  payout B (entry 1.2:1): 8420679289
+
+Suite result: ok. 8 passed; 0 failed; 0 skipped; finished in 2.59ms (3.77ms CPU time)
+
+Ran 1 test suite in 15.80ms (2.59ms CPU time): 8 tests passed, 0 failed, 0 skipped (8 total tests)

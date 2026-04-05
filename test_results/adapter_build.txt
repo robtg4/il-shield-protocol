@@ -1,0 +1,17 @@
+No files changed, compilation skipped
+note[unused-import]: unused imports should be removed
+ --> test/fork/PhaseB_ILPNRegistry.t.sol:5:9
+  |
+5 | import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+  |         ^^^^^^^^^^^^^^
+  |
+  = help: https://book.getfoundry.sh/reference/forge/forge-lint#unused-import
+
+note[mixed-case-variable]: mutable variables should use mixedCase
+   --> test/fork/PhaseC_Lifecycle.t.sol:107:17
+    |
+107 |         uint256 expectedIL = ILMath.computeIL(entrySqrt, exitSqrt, tickLower, tickUpper, liquidity);
+    |                 ^^^^^^^^^^ help: consider using: `expectedIl`
+    |
+    = help: https://book.getfoundry.sh/reference/forge/forge-lint#mixed-case-variable
+

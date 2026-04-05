@@ -147,12 +147,16 @@ function HomeInner() {
     usdcAllowance.raw !== undefined &&
     parseUnits(premiumAmount || "0", 6) > usdcAllowance.raw;
 
+  // Resolve adapter address from selected DEX + chain
+  const adapterAddress = (selectedDex?.adapters[chainId] || "0x0000000000000000000000000000000000000000") as `0x${string}`;
+
   // Handle approve → register flow
   useEffect(() => {
     if (isApproveSuccess && txStep === "approve") {
       usdcAllowance.refetch();
       setTxStep("register");
       register({
+        adapter: adapterAddress,
         positionId,
         coverageTier: selectedTier,
         duration: selectedDuration,
@@ -210,13 +214,14 @@ function HomeInner() {
     } else {
       setTxStep("register");
       register({
+        adapter: adapterAddress,
         positionId,
         coverageTier: selectedTier,
         duration: selectedDuration,
         premiumAmount,
       });
     }
-  }, [isConnected, premiumAmount, needsApproval, selectedTier, selectedDuration]);
+  }, [isConnected, premiumAmount, needsApproval, selectedTier, selectedDuration, adapterAddress]);
 
   const handleSettle = useCallback(() => {
     // Use a dummy exit price for testnet (sqrt(3000) * 2^96)

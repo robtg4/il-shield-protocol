@@ -67,6 +67,7 @@ export function useRegister() {
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
   const register = (params: {
+    adapter: Address;
     positionId: bigint;
     coverageTier: number;
     duration: string;
@@ -81,6 +82,7 @@ export function useRegister() {
       abi: IL_SHIELD_CORE_ABI,
       functionName: "register",
       args: [
+        params.adapter,
         params.positionId,
         params.coverageTier,
         durationBlocks,

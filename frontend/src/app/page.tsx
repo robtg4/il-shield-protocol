@@ -37,7 +37,7 @@ import { PositionSelector } from "@/components/PositionSelector";
 import { DexSelector } from "@/components/DexSelector";
 import { DexLogo } from "@/components/DexLogo";
 import { SupportedDexRow } from "@/components/SupportedDexRow";
-import { getDexesForChain, type DexConfig } from "@/config/dex-registry";
+import { getDeployedDexesForChain, type DexConfig } from "@/config/dex-registry";
 
 type Screen = "protect" | "active" | "settlement";
 
@@ -73,7 +73,7 @@ function HomeInner() {
   const positionId = selectedPositionId ?? BigInt(1);
 
   // DEX selection
-  const availableDexes = useMemo(() => getDexesForChain(chainId), [chainId]);
+  const availableDexes = useMemo(() => getDeployedDexesForChain(chainId), [chainId]);
   const [selectedDex, setSelectedDex] = useState<DexConfig | null>(null);
   useEffect(() => {
     if (availableDexes.length > 0 && !selectedDex) {

@@ -57,9 +57,18 @@ export const DEX_REGISTRY: DexConfig[] = [
   },
 ];
 
-/** Get DEXs available on a specific chain */
+const ZERO = "0x0000000000000000000000000000000000000000";
+
+/** Get all DEXs that list this chain (for display purposes) */
 export function getDexesForChain(chainId: number): DexConfig[] {
   return DEX_REGISTRY.filter((d) => d.chains.includes(chainId));
+}
+
+/** Get only DEXs with a deployed (non-zero) adapter on this chain */
+export function getDeployedDexesForChain(chainId: number): DexConfig[] {
+  return DEX_REGISTRY.filter(
+    (d) => d.chains.includes(chainId) && d.adapters[chainId] && d.adapters[chainId] !== ZERO
+  );
 }
 
 /** Get a DEX by id */

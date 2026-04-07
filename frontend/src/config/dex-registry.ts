@@ -28,7 +28,7 @@ export const DEX_REGISTRY: DexConfig[] = [
     color: "#FF007A",
     chains: [1, 42161, 10, 137, 8453, 56, 11155111],
     adapters: {
-      11155111: "0x0000000000000000000000000000000000000000",
+      11155111: "0x89ea6bde36bb30bd8594f5855534f05866f3df26",
     },
   },
   {
@@ -36,16 +36,20 @@ export const DEX_REGISTRY: DexConfig[] = [
     name: "PancakeSwap v3",
     shortName: "PCS v3",
     color: "#1FC7D4",
-    chains: [56, 1, 42161, 8453, 324, 59144, 137],
-    adapters: {},
+    chains: [56, 1, 42161, 8453, 324, 59144, 137, 11155111],
+    adapters: {
+      11155111: "0x2e41a526f217202fc06f3c6dd3b506f446772ca0",
+    },
   },
   {
     id: "sushiswap-v3",
     name: "SushiSwap v3",
     shortName: "SUSHI v3",
     color: "#FA52A0",
-    chains: [1, 42161, 137, 43114],
-    adapters: {},
+    chains: [1, 42161, 137, 43114, 11155111],
+    adapters: {
+      11155111: "0x6183b311328eb90b1437fbbfdfc434d333a633d6",
+    },
   },
   {
     id: "aerodrome",

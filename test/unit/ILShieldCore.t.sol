@@ -502,9 +502,9 @@ contract ILShieldCoreTest is Test {
         core.setWarmingPeriodBlocks(0);
         core.setFullCoverageRampBlocks(1);
 
-        // Configure pool with non-zero premium
-        oracle.configurePool(bytes32(uint256(88)), address(feed), address(0), 0.50e18, 3000, 0);
-        oracle.setCLevel(1e15);
+        // Configure pool with non-zero premium — high cLevel for meaningful streaming
+        oracle.configurePool(bytes32(uint256(88)), address(feed), address(0), 0.70e18, 3000, 0);
+        oracle.setCLevel(1e18);
 
         // Register with NO referrer
         vm.startPrank(alice);
@@ -512,7 +512,7 @@ contract ILShieldCoreTest is Test {
         uint256 id = core.register(88, 0, 50_400, 5_000_000e6, address(0));
         vm.stopPrank();
 
-        vm.roll(block.number + 1000);
+        vm.roll(block.number + 1_000_000);
 
         uint256 treasuryBefore = usdc.balanceOf(treasury);
         uint256[] memory ids = new uint256[](1);
@@ -542,10 +542,10 @@ contract ILShieldCoreTest is Test {
         core.setWarmingPeriodBlocks(0);
         core.setFullCoverageRampBlocks(1);
 
-        // Configure oracle for non-zero premium so streaming distributes
-        oracle.setCLevel(1e15);
+        // Configure oracle for non-zero premium — high cLevel for meaningful streaming
+        oracle.setCLevel(1e18);
         bytes32 refPool = bytes32(uint256(77));
-        oracle.configurePool(refPool, address(feed), address(0), 0.50e18, 3000, 0);
+        oracle.configurePool(refPool, address(feed), address(0), 0.70e18, 3000, 0);
 
         address ref1 = address(0xEF01);
         address ref2 = address(0xEF02);
@@ -557,7 +557,7 @@ contract ILShieldCoreTest is Test {
         uint256 id2 = core.register(77, 0, 50_400, 5_000_000e6, ref2);
         vm.stopPrank();
 
-        vm.roll(block.number + 1000);
+        vm.roll(block.number + 1_000_000);
         uint256[] memory ids = new uint256[](2);
         ids[0] = id1; ids[1] = id2;
         core.processStreaming(ids);

@@ -173,12 +173,14 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
 
         bytes32 poolId = bytes32(uint256(uint160(pos.pool)));
 
-        // Compute premium rate from pricing oracle
+        // Compute premium rate from pricing oracle (18 decimals, per unit liquidity, per block)
         uint256 premiumRate = pricingOracle.computePremiumRate(poolId, pos.tickLower, pos.tickUpper, coverageTier);
 
         // Ensure premium deposit covers at least minimum duration
-        uint256 minPremium = premiumRate * durationBlocks;
-        if (premiumDeposit < minPremium && premiumRate > 0) revert InsufficientPremium();
+        // Compare in 18-decimal space: scale premiumDeposit (6 dec) up to 18 dec
+        uint256 minPremiumWad = premiumRate * durationBlocks;
+        uint256 premiumDepositWad = premiumDeposit * 1e12;
+        if (premiumDepositWad < minPremiumWad && premiumRate > 0) revert InsufficientPremium();
 
         uint48 startBlock = uint48(block.number) + uint48(warmingPeriodBlocks);
 
@@ -228,8 +230,9 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
         int24 tickUpper = 887220;
         uint256 premiumRate = pricingOracle.computePremiumRate(poolId, tickLower, tickUpper, coverageTier);
 
-        uint256 minPremium = premiumRate * durationBlocks;
-        if (premiumDeposit < minPremium && premiumRate > 0) revert InsufficientPremium();
+        uint256 minPremiumWad = premiumRate * durationBlocks;
+        uint256 premiumDepositWad = premiumDeposit * 1e12;
+        if (premiumDepositWad < minPremiumWad && premiumRate > 0) revert InsufficientPremium();
 
         uint48 startBlock = uint48(block.number) + uint48(warmingPeriodBlocks);
 
@@ -413,7 +416,10 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
         uint256 blocksElapsed = block.number - pos.lastPremiumBlock;
         if (blocksElapsed == 0) return;
 
-        uint256 premiumDue = blocksElapsed * pos.premiumRatePerBlock;
+        // premiumRatePerBlock is 18 dec, premiumBalance is 6 dec USDC
+        // Convert due amount to 6 dec for deduction
+        uint256 premiumDueWad = blocksElapsed * pos.premiumRatePerBlock;
+        uint256 premiumDue = premiumDueWad / 1e12;
         uint256 deducted = premiumDue > pos.premiumBalance ? pos.premiumBalance : premiumDue;
 
         pos.premiumBalance -= deducted;
@@ -427,7 +433,9 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
         uint256 blocksElapsed = block.number - pos.lastPremiumBlock;
         if (blocksElapsed == 0) return;
 
-        uint256 premiumDue = blocksElapsed * pos.premiumRatePerBlock;
+        // premiumRatePerBlock is 18 dec, premiumBalance is 6 dec USDC
+        uint256 premiumDueWad = blocksElapsed * pos.premiumRatePerBlock;
+        uint256 premiumDue = premiumDueWad / 1e12;
         uint256 deducted = premiumDue > pos.premiumBalance ? pos.premiumBalance : premiumDue;
 
         pos.premiumBalance -= deducted;

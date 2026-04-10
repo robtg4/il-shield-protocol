@@ -14,14 +14,14 @@ interface ChainAddresses {
   explorerName: string;
 }
 
-// Ethereum Sepolia V2 (live Chainlink + Uniswap v4 + adapter support)
+// Ethereum Sepolia V3 (adapter + unit-fix redeploy)
 const SEPOLIA: ChainAddresses = {
-  ILShieldCore: "0xdbB160dc5f8e00A8f216042F6b1Dc16055B10722",
-  SeniorVault: "0xc4887c6e2b28b8E7c4c068f5e5e10Ab469EAEb0F",
-  JuniorVault: "0x6e7171177d5b321cBa8791C367d354ce089110cB",
-  ILPNRegistry: "0xfE0865A25b263B700C9724431A3D2bF0d3d34c63",
-  PricingOracle: "0x3BD63791f0308029F66448DB037fBe6F7A4a4733",
-  USDC: "0x54738B6D21E9b3091f9CF82f9d3cf0d05aE4040A",
+  ILShieldCore: "0x772F171b0b382D26961E3803c7FB1f206102a236",
+  SeniorVault: "0x71A79914bd89CA46D73Dd645357aC076f524C678",
+  JuniorVault: "0xE4cf05DdE8c5f299C3798a49e2A6Be596C3b7E7d",
+  ILPNRegistry: "0x923721cC1c1f2C92F855993808d8a4e4a6AE189C",
+  PricingOracle: "0xa225407cC259241CeA87a4007443da5BcFF180F0",
+  USDC: "0xaBb5f3CBA569365E8059088376c0008bFE280822",
   chainlinkEthUsd: "0x694AA1769357215DE4FAC081bf1f309aDC325306",
   v4PoolManager: "0xE03A1074c86CFeDd5C142C4F04F1a1536e203543",
   v4PositionManager: "0x429ba70129df741B2Ca2a85BC3A2a3328e5c09b4",

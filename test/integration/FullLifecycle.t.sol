@@ -92,10 +92,9 @@ contract FullLifecycleTest is Test {
         oracle.grantRole(KEEPER_ROLE, admin);
         core.grantRole(KEEPER_ROLE, admin);
 
-        // Configure pool on oracle with high expectedVolPerLiq so feeIncome > grossIL,
-        // resulting in premiumRate = 0. This avoids InsufficientPremium on registration.
+        // Configure pool on oracle with realistic pricing
         bytes32 poolId = bytes32(uint256(1));
-        oracle.configurePool(poolId, address(chainlinkFeed), address(0), 0.50e18, 3000, 1e18);
+        oracle.configurePool(poolId, address(chainlinkFeed), address(0), 0.70e18, 3000, 0);
 
         // Set warming period to 0 for simpler testing
         core.setWarmingPeriodBlocks(0);
@@ -146,9 +145,9 @@ contract FullLifecycleTest is Test {
         assertEq(usdc.balanceOf(alice), aliceBalBefore - premiumDeposit);
 
         // ─── Step 2: Process streaming ──────────────────────────────────
-        // premiumRate is 0 from oracle (feeIncome > grossIL). Set a non-zero rate
-        // via storage to test streaming deduction.
-        uint256 ratePerBlock = 100; // 100 wei per block (tiny, but non-zero)
+        // Set a non-zero rate in 18-dec (streaming divides by 1e12 to get 6-dec USDC)
+        // 1e14 per block → after /1e12 = 100 USDC-wei per block
+        uint256 ratePerBlock = 1e14;
         _setPositionPremiumRate(ilpnId, ratePerBlock);
 
         // Verify rate was set by reading it back
@@ -157,8 +156,9 @@ contract FullLifecycleTest is Test {
 
         (,,,,,,,,uint256 premBalBefore,,,,,,) = core.positions(ilpnId);
 
-        // Advance 1000 blocks
-        vm.roll(block.number + 1000);
+        // Advance enough blocks for streaming to produce non-zero deduction
+        // Rate is 18-dec, deduction = rate * blocks / 1e12 must be > 0
+        vm.roll(block.number + 1_000_000);
 
         uint256[] memory ids = new uint256[](1);
         ids[0] = ilpnId;

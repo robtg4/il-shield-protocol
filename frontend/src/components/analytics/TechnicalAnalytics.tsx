@@ -7,7 +7,7 @@ import { PremiumEconomicsCard } from "./PremiumEconomicsCard";
 import { VaultHealthCard } from "./VaultHealthCard";
 
 export function TechnicalAnalytics({ data }: { data: PositionAnalytics }) {
-  const estimatedValue = data.currentPrice * 20;
+  const estimatedValue = data.estimatedValue;
 
   return (
     <div className="space-y-3">

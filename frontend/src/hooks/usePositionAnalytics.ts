@@ -14,6 +14,7 @@ export interface PositionAnalytics {
   tickLower: number;
   tickUpper: number;
   currentPrice: number;
+  estimatedValue: number;
   priceChangePct: number;
   inRange: boolean;
   currentIL: number;
@@ -37,9 +38,43 @@ export interface PositionAnalytics {
 }
 
 /**
- * Returns analytics for a selected position, or null if no position is provided.
- * All values are derived from on-chain data — no hardcoded defaults.
+ * Estimate USD value of a concentrated liquidity position.
+ * Uses the Uniswap v3 formula: value ≈ 2 * L * sqrt(P) * (sqrt(Pu) - sqrt(Pl)) / (sqrt(Pu) * sqrt(Pl))
+ * Simplified for display: approximate as L * price_range_width / 1e18
  */
+function estimatePositionValueUSD(
+  liquidity: bigint,
+  currentPrice: number,
+  tickLower: number,
+  tickUpper: number,
+): number {
+  if (liquidity === BigInt(0)) return 0;
+
+  // Convert ticks to prices
+  const priceLower = Math.pow(1.0001, tickLower);
+  const priceUpper = Math.pow(1.0001, tickUpper);
+
+  // For a USDC/WETH pool where tick increases = WETH gets more expensive in USDC terms:
+  // Value in token1 (WETH) terms ≈ L * (sqrt(upper) - sqrt(lower)) / 1e18
+  const sqrtLower = Math.sqrt(priceLower);
+  const sqrtUpper = Math.sqrt(priceUpper);
+  const liqNum = Number(liquidity);
+
+  // Approximate: token1 amount ≈ L * (sqrtUpper - sqrtLower)
+  // token0 amount ≈ L * (1/sqrtLower - 1/sqrtUpper)
+  // Total USD ≈ token0_usd + token1_usd
+  // This is a rough estimate — good enough for analytics display
+  const token1Amount = liqNum * (sqrtUpper - sqrtLower) / 1e18;
+  const token0Amount = liqNum * (1 / sqrtLower - 1 / sqrtUpper) / 1e6; // USDC has 6 decimals
+
+  // token0 is typically USDC (value = amount), token1 is WETH (value = amount * price)
+  const valueUSD = token0Amount + token1Amount * currentPrice;
+
+  // Sanity cap — if the estimate is negative or absurd, return 0
+  if (valueUSD < 0 || !isFinite(valueUSD)) return 0;
+  return valueUSD;
+}
+
 export function usePositionAnalytics(
   position: UserPosition | null,
   premiumAmount?: number
@@ -54,19 +89,19 @@ export function usePositionAnalytics(
     const currentPrice = chainlink.price;
     if (!currentPrice) return null;
 
-    // Tick range width for IL estimation
     const tickWidth = Math.abs(position.tickUpper - position.tickLower);
 
-    // Estimate position value from tick range and price
-    // Without subgraph/liquidity data, we show IL as % and projections
-    // relative to premium rather than absolute USD
-    const estimatedPositionValue = currentPrice * 20; // rough proxy: ~20 ETH equivalent
+    // Estimate position value from actual liquidity
+    const estimatedValue = estimatePositionValueUSD(
+      position.liquidity, currentPrice, position.tickLower, position.tickUpper
+    );
 
-    // Price change since "entry" — we use the midpoint of the tick range as proxy
-    // tick = log(price) / log(1.0001), so midTick → price
+    // Price change: midpoint of tick range as implied entry
     const midTick = (position.tickLower + position.tickUpper) / 2;
     const impliedEntryPrice = Math.pow(1.0001, midTick);
-    const priceChangePct = impliedEntryPrice > 0
+    // The tick-to-price gives USDC per WETH for a USDC/WETH pool
+    // Compare against Chainlink ETH/USD
+    const priceChangePct = impliedEntryPrice > 0 && impliedEntryPrice < 1e12
       ? ((currentPrice - impliedEntryPrice) / impliedEntryPrice) * 100
       : 0;
 
@@ -74,22 +109,23 @@ export function usePositionAnalytics(
     const currentTick = Math.log(currentPrice) / Math.log(1.0001);
     const inRange = currentTick >= position.tickLower && currentTick <= position.tickUpper;
 
-    // IL computations
-    const currentIL = computeIL(estimatedPositionValue, Math.abs(priceChangePct), tickWidth);
-    const currentILPct = estimatedPositionValue > 0 ? (currentIL / estimatedPositionValue) * 100 : 0;
-    const ilAt10 = computeIL(estimatedPositionValue, 10, tickWidth);
-    const ilAt50 = computeIL(estimatedPositionValue, 50, tickWidth);
+    // IL computations — use real estimated value
+    const posValue = Math.max(estimatedValue, 1); // avoid division by zero
+    const currentIL = computeIL(posValue, Math.abs(priceChangePct), tickWidth);
+    const currentILPct = posValue > 0 ? (currentIL / posValue) * 100 : 0;
+    const ilAt10 = computeIL(posValue, 10, tickWidth);
+    const ilAt50 = computeIL(posValue, 50, tickWidth);
 
-    // Premium economics — derived from user input or zero
+    // Premium economics
     const monthlyPremium = premiumAmount || 0;
     const dailyCost = monthlyPremium / 30;
     const premiumPerBlock = dailyCost / 7200;
     const breakEven = monthlyPremium > 0
-      ? findBreakEven(estimatedPositionValue, monthlyPremium, 2, tickWidth)
+      ? findBreakEven(posValue, monthlyPremium, 2, tickWidth)
       : 0;
     const historicalProb = breakEven > 0 ? getHistoricalProb(breakEven) : 0;
 
-    // Vault data — from chain
+    // Vault data
     const srTVL = seniorAssets.raw ? Number(seniorAssets.raw) / 1e6 : 0;
     const jrTVL = juniorAssets.raw ? Number(juniorAssets.raw) / 1e6 : 0;
     const sjRatio = jrTVL > 0 ? srTVL / jrTVL : 0;
@@ -102,6 +138,7 @@ export function usePositionAnalytics(
       tickLower: position.tickLower,
       tickUpper: position.tickUpper,
       currentPrice,
+      estimatedValue,
       priceChangePct,
       inRange,
       currentIL,

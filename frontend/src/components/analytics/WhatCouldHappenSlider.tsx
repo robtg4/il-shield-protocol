@@ -1,22 +1,35 @@
 "use client";
 
 import { useState } from "react";
-import { computeIL, computePayout } from "@/lib/ilmath";
+import { computeILAtMove, computePayout, tokenAmountToUSD } from "@/lib/ilmath";
 
 export function WhatCouldHappenSlider({
-  positionValue,
+  sqrtPriceX96,
+  tickLower,
+  tickUpper,
+  liquidity,
   monthlyPremium,
+  estimatedValue,
+  token1Decimals,
+  token1PriceUSD,
 }: {
-  positionValue: number;
+  sqrtPriceX96: bigint;
+  tickLower: number;
+  tickUpper: number;
+  liquidity: bigint;
   monthlyPremium: number;
+  estimatedValue: number;
+  token1Decimals: number;
+  token1PriceUSD: number;
 }) {
   const [movePct, setMovePct] = useState(20);
 
-  const il = computeIL(positionValue, movePct);
-  const payout = computePayout(il, 2); // 100% tier
-  const netWithProtection = payout - monthlyPremium;
-  const withoutLoss = il;
-  const withoutLossPct = positionValue > 0 ? (il / positionValue) * 100 : 0;
+  const ilRaw = computeILAtMove(sqrtPriceX96, movePct, tickLower, tickUpper, liquidity);
+  const ilUSD = tokenAmountToUSD(ilRaw, token1Decimals, token1PriceUSD);
+  const payoutRaw = computePayout(ilRaw, 2);
+  const payoutUSD = tokenAmountToUSD(payoutRaw, token1Decimals, token1PriceUSD);
+  const netWithProtection = payoutUSD - monthlyPremium;
+  const lossPct = estimatedValue > 0 ? (ilUSD / estimatedValue) * 100 : 0;
 
   return (
     <div className="rounded-2xl bg-input p-4">
@@ -36,27 +49,25 @@ export function WhatCouldHappenSlider({
       />
 
       <div className="grid grid-cols-2 gap-3">
-        {/* Without protection */}
         <div className="rounded-xl bg-red-dim p-3">
           <div className="text-[12px] text-text3 mb-1">Without protection</div>
           <div className="font-mono text-xl font-semibold text-red">
-            -${withoutLoss.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+            -${ilUSD.toLocaleString(undefined, { maximumFractionDigits: 2 })}
           </div>
           <div className="text-[12px] text-text3 mt-1">
-            you lose {withoutLossPct.toFixed(1)}%
+            you lose {lossPct.toFixed(1)}%
           </div>
         </div>
 
-        {/* With IL Shield */}
         <div className={`rounded-xl p-3 ${netWithProtection >= 0 ? "bg-green-dim" : "bg-input"}`}>
           <div className="text-[12px] text-text3 mb-1">With IL Shield</div>
           <div className={`font-mono text-xl font-semibold ${netWithProtection >= 0 ? "text-green" : "text-text2"}`}>
             {netWithProtection >= 0
-              ? `+$${netWithProtection.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
-              : `-$${Math.abs(netWithProtection).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+              ? `+$${netWithProtection.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+              : `-$${Math.abs(netWithProtection).toLocaleString(undefined, { maximumFractionDigits: 2 })}`}
           </div>
           <div className="text-[12px] text-text3 mt-1">
-            {netWithProtection >= 0 ? "you get paid" : `just the premium`}
+            {netWithProtection >= 0 ? "you get paid" : "just the premium"}
           </div>
         </div>
       </div>

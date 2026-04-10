@@ -1,6 +1,6 @@
 "use client";
 
-import { WagmiProvider, createConfig, http } from "wagmi";
+import { WagmiProvider, createConfig, http, cookieStorage, createStorage } from "wagmi";
 import { mainnet, sepolia } from "wagmi/chains";
 import { injected, walletConnect, coinbaseWallet, safe } from "wagmi/connectors";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -37,6 +37,8 @@ const config = createConfig({
     [sepolia.id]: http(),
     [mainnet.id]: http(),
   },
+  ssr: true,
+  storage: createStorage({ storage: cookieStorage }),
 });
 
 export { config };

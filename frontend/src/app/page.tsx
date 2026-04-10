@@ -56,8 +56,17 @@ function HomeInner() {
   const searchParams = useSearchParams();
   const positionIdParam = searchParams.get("positionId");
 
-  // User positions from on-chain
-  const { positions: userPositions, isLoading: positionsLoading } = useUserPositions();
+  // DEX selection (must come before position discovery)
+  const availableDexes = useMemo(() => getDeployedDexesForChain(chainId), [chainId]);
+  const [selectedDex, setSelectedDex] = useState<DexConfig | null>(null);
+  useEffect(() => {
+    if (availableDexes.length > 0 && !selectedDex) {
+      setSelectedDex(availableDexes[0]);
+    }
+  }, [availableDexes, selectedDex]);
+
+  // User positions from on-chain — based on selected DEX
+  const { positions: userPositions, isLoading: positionsLoading } = useUserPositions(selectedDex, chainId);
   const [selectedPositionId, setSelectedPositionId] = useState<bigint | null>(null);
 
   // Auto-select from URL param or first position
@@ -69,17 +78,13 @@ function HomeInner() {
     }
   }, [positionIdParam, userPositions, selectedPositionId]);
 
+  // Reset position selection when DEX changes
+  useEffect(() => {
+    setSelectedPositionId(null);
+  }, [selectedDex?.id]);
+
   const selectedPosition = userPositions.find((p) => p.tokenId === selectedPositionId) ?? null;
   const positionId = selectedPositionId ?? BigInt(1);
-
-  // DEX selection
-  const availableDexes = useMemo(() => getDeployedDexesForChain(chainId), [chainId]);
-  const [selectedDex, setSelectedDex] = useState<DexConfig | null>(null);
-  useEffect(() => {
-    if (availableDexes.length > 0 && !selectedDex) {
-      setSelectedDex(availableDexes[0]);
-    }
-  }, [availableDexes, selectedDex]);
 
   const usdcBalance = useUSDCBalance();
   const usdcAllowance = useUSDCAllowance();

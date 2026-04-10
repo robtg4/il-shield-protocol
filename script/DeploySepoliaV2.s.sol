@@ -81,21 +81,22 @@ contract DeploySepoliaV2 is Script {
         console.log("V4 Adapter approved");
 
         // 7. Configure ETH/USDC pool
+        // 7b. Configure ETH/USDC pool — mainnet-ready pricing
         bytes32 ethUsdcPool = bytes32(uint256(1));
         pricingOracle.configurePool(
             ethUsdcPool,
             CHAINLINK_ETH_USD,
             address(0),
-            0.35e18,
-            3000,
-            1e18
+            0.70e18,            // 70% vol floor (realistic ETH 30-day realized vol)
+            3000,               // 0.30% fee tier
+            0                   // expectedVolPerLiq = 0 → no fee income offset → full IL pricing
         );
 
-        // 8. Testnet parameters
-        core.setWarmingPeriodBlocks(10);
-        core.setFullCoverageRampBlocks(50);
-        seniorVault.setMinLockDuration(10);
-        juniorVault.setMinLockDuration(20);
+        // 8. Testnet parameters (shorter timings for faster iteration)
+        core.setWarmingPeriodBlocks(10);       // ~2 min (mainnet: 14400 = ~48h)
+        core.setFullCoverageRampBlocks(50);    // ~10 min (mainnet: 50400 = ~7d)
+        seniorVault.setMinLockDuration(10);    // ~2 min (mainnet: 100800 = ~14d)
+        juniorVault.setMinLockDuration(20);    // ~4 min (mainnet: 201600 = ~28d)
 
         // 9. Seed vaults
         usdc.approve(address(seniorVault), 5_000_000e6);

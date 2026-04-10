@@ -8,6 +8,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ILMath} from "../libraries/ILMath.sol";
 import {PremiumMath} from "../libraries/PremiumMath.sol";
+import {FullMath} from "@uniswap/v4-core/src/libraries/FullMath.sol";
 import {IPositionAdapter} from "../interfaces/IPositionAdapter.sol";
 import {ILPNRegistry} from "./ILPNRegistry.sol";
 import {SeniorVault} from "./SeniorVault.sol";
@@ -173,8 +174,14 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
 
         bytes32 poolId = bytes32(uint256(uint160(pos.pool)));
 
-        // Compute premium rate from pricing oracle (18 decimals, per unit liquidity, per block)
-        uint256 premiumRate = pricingOracle.computePremiumRate(poolId, pos.tickLower, pos.tickUpper, coverageTier);
+        // Compute premium rate from pricing oracle (18 dec, per unit liquidity, per block)
+        uint256 ratePerUnitLiq = pricingOracle.computePremiumRate(poolId, pos.tickLower, pos.tickUpper, coverageTier);
+
+        // Scale by position liquidity: larger positions pay proportionally more
+        // premiumRate = ratePerUnitLiq * liquidity / 1e18 (keeps 18-dec result)
+        uint256 premiumRate = pos.liquidity > 0
+            ? FullMath.mulDiv(ratePerUnitLiq, uint256(pos.liquidity), 1e18)
+            : ratePerUnitLiq;
 
         // Ensure premium deposit covers at least minimum duration
         // Compare in 18-decimal space: scale premiumDeposit (6 dec) up to 18 dec

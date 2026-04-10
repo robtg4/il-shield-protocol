@@ -1,18 +1,33 @@
 "use client";
 
-import { computeIL, computePayout } from "@/lib/ilmath";
+import { computeILAtMove, computePayout, tokenAmountToUSD } from "@/lib/ilmath";
 
-export function ScenarioTable({ positionValue }: { positionValue: number }) {
+export function ScenarioTable({
+  sqrtPriceX96,
+  tickLower,
+  tickUpper,
+  liquidity,
+  token1Decimals,
+  token1PriceUSD,
+}: {
+  sqrtPriceX96: bigint;
+  tickLower: number;
+  tickUpper: number;
+  liquidity: bigint;
+  token1Decimals: number;
+  token1PriceUSD: number;
+}) {
   const moves = [5, 10, 20, 50];
 
   const rows = moves.map((move) => {
-    const il = computeIL(positionValue, move);
+    const ilRaw = computeILAtMove(sqrtPriceX96, move, tickLower, tickUpper, liquidity);
+    const toUSD = (raw: bigint) => tokenAmountToUSD(raw, token1Decimals, token1PriceUSD);
     return {
       move,
-      il,
-      payout50: computePayout(il, 0),
-      payout75: computePayout(il, 1),
-      payout100: computePayout(il, 2),
+      il: toUSD(ilRaw),
+      payout50: toUSD(computePayout(ilRaw, 0)),
+      payout75: toUSD(computePayout(ilRaw, 1)),
+      payout100: toUSD(computePayout(ilRaw, 2)),
     };
   });
 
@@ -32,10 +47,10 @@ export function ScenarioTable({ positionValue }: { positionValue: number }) {
           {rows.map((r) => (
             <tr key={r.move} className="border-b border-card-border last:border-0">
               <td className="px-3 py-2 text-text2 font-mono">&plusmn;{r.move}%</td>
-              <td className="px-3 py-2 text-right text-red font-mono">${r.il.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-              <td className="px-3 py-2 text-right text-green font-mono">${r.payout50.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-              <td className="px-3 py-2 text-right text-green font-mono">${r.payout75.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
-              <td className="px-3 py-2 text-right text-green font-mono">${r.payout100.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+              <td className="px-3 py-2 text-right text-red font-mono">${r.il.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+              <td className="px-3 py-2 text-right text-green font-mono">${r.payout50.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+              <td className="px-3 py-2 text-right text-green font-mono">${r.payout75.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+              <td className="px-3 py-2 text-right text-green font-mono">${r.payout100.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
             </tr>
           ))}
         </tbody>

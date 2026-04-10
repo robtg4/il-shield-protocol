@@ -70,10 +70,10 @@ contract Deploy is Script {
             pricingOracle.configurePool(
                 ethUsdcPool,
                 chainlinkEthUsd,
-                address(0), // TWAP source set later
-                0.35e18,    // 35% vol floor for ETH
+                address(0),
+                0.70e18,    // 70% vol floor (realistic ETH)
                 3000,       // 0.30% fee tier
-                1e14        // Expected vol/liq per block
+                0           // no fee income offset → full IL pricing
             );
             console.log("Configured ETH/USDC pool oracle");
         }

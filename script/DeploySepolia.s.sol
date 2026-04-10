@@ -86,11 +86,11 @@ contract DeploySepolia is Script {
         bytes32 ethUsdcPool = bytes32(uint256(1));
         pricingOracle.configurePool(
             ethUsdcPool,
-            CHAINLINK_ETH_USD, // REAL Chainlink feed
-            address(0),         // No TWAP source initially
-            0.35e18,            // 35% vol floor
+            CHAINLINK_ETH_USD,
+            address(0),
+            0.70e18,            // 70% vol floor (realistic ETH realized vol)
             3000,               // 0.30% fee tier
-            1e18                // High vol/liq → premiumRate=0 for testing
+            0                   // no fee income offset → full IL pricing
         );
 
         // 9. Testnet-friendly parameters

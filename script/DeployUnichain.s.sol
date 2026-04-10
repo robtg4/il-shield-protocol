@@ -89,14 +89,14 @@ contract DeployUnichain is Script {
         core.grantRole(KEEPER_ROLE, deployer);
 
         // 8. Configure ETH/USDC pool on oracle with mock feed
-        bytes32 ethUsdcPool = bytes32(uint256(1)); // positionId=1 maps to this poolId
+        bytes32 ethUsdcPool = bytes32(uint256(1));
         pricingOracle.configurePool(
             ethUsdcPool,
-            address(mockFeed),  // Mock Chainlink
-            address(0),         // No TWAP source yet
-            0.35e18,            // 35% vol floor for ETH
+            address(mockFeed),
+            address(0),
+            0.70e18,            // 70% vol floor (realistic ETH)
             3000,               // 0.30% fee tier
-            1e18                // High vol/liq to make premiumRate=0 (fees > IL)
+            0                   // no fee income offset → full IL pricing
         );
 
         // 9. Adjust parameters for testnet (shorter timings)

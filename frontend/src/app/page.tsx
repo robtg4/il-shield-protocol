@@ -38,6 +38,8 @@ import { DexSelector } from "@/components/DexSelector";
 import { DexLogo } from "@/components/DexLogo";
 import { SupportedDexRow } from "@/components/SupportedDexRow";
 import { getDeployedDexesForChain, type DexConfig } from "@/config/dex-registry";
+import { usePremiumQuote } from "@/hooks/usePremiumQuote";
+import { PremiumCostBreakdown } from "@/components/PremiumCostBreakdown";
 
 type Screen = "protect" | "active" | "settlement";
 
@@ -136,6 +138,20 @@ function HomeInner() {
 
   // Position analytics — driven by selected position, no static data
   const analytics = usePositionAnalytics(selectedPosition, parseFloat(premiumAmount) || undefined);
+
+  // Premium quotes — read rates from PricingOracle for all 3 tiers
+  // poolId = bytes32(uint256(1)) for legacy, or derived from adapter pool address
+  // For now use the legacy poolId format since that's what's configured on the oracle
+  const premiumPoolId = selectedPosition
+    ? ("0x0000000000000000000000000000000000000000000000000000000000000001" as `0x${string}`)
+    : null;
+  const premiumQuotes = usePremiumQuote(
+    premiumPoolId,
+    selectedPosition?.tickLower ?? 0,
+    selectedPosition?.tickUpper ?? 0,
+    selectedTier,
+    selectedDuration,
+  );
 
   // Active screen state
   const [warmingPercent, setWarmingPercent] = useState(0);
@@ -325,7 +341,18 @@ function HomeInner() {
                     <DurationPills selected={selectedDuration} onSelect={setSelectedDuration} />
                   </div>
 
-                  {/* Premium */}
+                  {/* Premium cost breakdown */}
+                  {selectedPosition && (
+                    <div className="mt-3">
+                      <PremiumCostBreakdown
+                        quotes={premiumQuotes}
+                        selectedTier={selectedTier}
+                        selectedDuration={selectedDuration}
+                      />
+                    </div>
+                  )}
+
+                  {/* Premium deposit */}
                   <div className="mt-3">
                     <PremiumInput
                       value={premiumAmount}

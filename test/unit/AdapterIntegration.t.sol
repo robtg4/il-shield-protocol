@@ -260,9 +260,9 @@ contract AdapterIntegration is Test {
     }
 
     function test_adapter_register_insufficientPremiumForRate_reverts() public {
-        // Configure pool with high vol → non-zero premium rate
+        // Configure pool with high vol + high cLevel so scaled rate * duration > 1 USDC
         oracle.configurePool(POOL_ID, address(feed), address(0), 0.70e18, 3000, 0);
-        oracle.setCLevel(1e18);
+        oracle.setCLevel(1e24);
 
         vm.startPrank(alice);
         usdc.approve(address(core), 1);

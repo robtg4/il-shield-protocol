@@ -7,7 +7,7 @@ import { WhatItCostsCard } from "./WhatItCostsCard";
 import { HowItWorksSteps } from "./HowItWorksSteps";
 
 export function SimpleAnalytics({ data }: { data: PositionAnalytics }) {
-  const estimatedValue = data.currentPrice * 20;
+  const estimatedValue = data.estimatedValue;
 
   return (
     <div className="space-y-3">

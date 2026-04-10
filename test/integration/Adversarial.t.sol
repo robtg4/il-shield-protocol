@@ -164,9 +164,9 @@ contract AdversarialTest is Test {
         // Register with small premium
         uint256 ilpnId = _registerAsAlice(1, 1e6);
 
-        // Set a non-zero premium rate via storage so streaming actually deducts
-        // Rate of 100 per block; 1e6 deposit / 100 = 10_000 blocks to exhaust
-        _setPositionPremiumRate(ilpnId, 100);
+        // Set rate in 18-dec: 1e14 per block → after /1e12 = 100 USDC-wei per block
+        // 1e6 deposit / 100 per block = 10_000 blocks to exhaust
+        _setPositionPremiumRate(ilpnId, 1e14);
 
         // Advance 20_000 blocks (well past exhaustion point)
         vm.roll(block.number + 20_000);

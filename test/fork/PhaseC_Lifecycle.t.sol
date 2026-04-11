@@ -223,14 +223,14 @@ contract PhaseC_Lifecycle is ForkBase {
         // Use moderate vol so premium rate is manageable
         bytes32 modVolPool = bytes32(uint256(99));
 
-        // Lower C-level from 5x to 0.001x for a manageable premium rate
-        oracle.setCLevel(1e15); // 0.001
+        // Set cLevel high enough that rate * blocks / 1e12 > 0
+        oracle.setCLevel(1e18);
 
         oracle.configurePool(
             modVolPool,
             CHAINLINK_ETH_USD,
             address(0),
-            0.50e18,  // 50% vol floor
+            0.70e18,  // 70% vol floor
             3000,
             0         // ZERO fees → netIL = grossIL > 0
         );
@@ -252,8 +252,8 @@ contract PhaseC_Lifecycle is ForkBase {
         uint256 balBefore = uint256(vm.load(address(core), bytes32(uint256(baseSlot) + 3)));
         console.log("C12 Premium balance before:", balBefore);
 
-        // Advance 1000 blocks and stream
-        vm.roll(block.number + 1000);
+        // Advance enough blocks for streaming deduction to be non-zero after /1e12
+        vm.roll(block.number + 1_000_000);
         uint256[] memory ids = new uint256[](1);
         ids[0] = ilpnId;
         core.processStreaming(ids);
@@ -262,12 +262,13 @@ contract PhaseC_Lifecycle is ForkBase {
         uint256 balAfter = uint256(vm.load(address(core), bytes32(uint256(baseSlot) + 3)));
         console.log("C12 Premium balance after:", balAfter);
 
-        uint256 expectedDeduction = premiumRate * 1000;
+        // Streaming converts 18-dec rate to 6-dec USDC: deduction = (rate * blocks) / 1e12
+        uint256 expectedDeduction = (premiumRate * 1_000_000) / 1e12;
         uint256 actualDeduction = balBefore - balAfter;
         console.log("C12 Expected deduction:", expectedDeduction);
         console.log("C12 Actual deduction:", actualDeduction);
 
         assertGt(actualDeduction, 0, "C12: Premium must decrease");
-        assertEq(actualDeduction, expectedDeduction, "C12: Deduction = rate * blocks");
+        assertEq(actualDeduction, expectedDeduction, "C12: Deduction = (rate * blocks) / 1e12");
     }
 }

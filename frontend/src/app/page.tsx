@@ -40,6 +40,7 @@ import { SupportedDexRow } from "@/components/SupportedDexRow";
 import { getDeployedDexesForChain, type DexConfig } from "@/config/dex-registry";
 import { usePremiumQuote } from "@/hooks/usePremiumQuote";
 import { PremiumCostBreakdown } from "@/components/PremiumCostBreakdown";
+import { TxProgressOverlay } from "@/components/TxProgressOverlay";
 
 type Screen = "protect" | "active" | "settlement";
 
@@ -275,6 +276,23 @@ function HomeInner() {
   return (
     <div className="relative min-h-screen">
       <BackgroundOrbs />
+
+      {/* Transaction progress overlay */}
+      {(isTxPending || isSettling || isSettleConfirming) && (
+        <TxProgressOverlay
+          step={
+            isSettling || isSettleConfirming ? "settle"
+            : txStep === "approve" || isApproving || isApproveConfirming ? "approve"
+            : "register"
+          }
+          message={
+            isApproveConfirming || isRegisterConfirming || isSettleConfirming
+              ? "Transaction submitted — waiting for confirmation..."
+              : "Please confirm in your wallet"
+          }
+        />
+      )}
+
       <div className="relative z-10 flex min-h-screen flex-col">
         <NavBar />
         <main className="flex flex-1 flex-col items-center px-4 pt-10">

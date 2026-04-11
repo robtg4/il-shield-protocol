@@ -1,99 +1,207 @@
 "use client";
 
-import { useState } from "react";
-import { useAccount, useReadContract, useReadContracts } from "wagmi";
+import { useState, useMemo, useEffect } from "react";
+import { useAccount, useChainId, useReadContract } from "wagmi";
 import { BackgroundOrbs } from "@/components/BackgroundOrbs";
 import { NavBar } from "@/components/NavBar";
 import { StatusBadge } from "@/components/StatusBadge";
-import {
-  POSITION_MANAGER_ADDRESS,
-  POSITION_MANAGER_ABI,
-  decodePositionInfo,
-} from "@/lib/positionManager";
+import { DexSelector } from "@/components/DexSelector";
+import { DexLogo } from "@/components/DexLogo";
+import { useUserPositions, type UserPosition } from "@/hooks/useUserPositions";
+import { useChainAddresses } from "@/hooks/useILShield";
+import { getDeployedDexesForChain, type DexConfig } from "@/config/dex-registry";
 
-// Known token addresses on Unichain Sepolia (expand as needed)
-const TOKEN_LABELS: Record<string, string> = {
-  "0x0000000000000000000000000000000000000000": "ETH",
-  "0x4200000000000000000000000000000000000006": "WETH",
-  "0x31d0220469e10c4e71834a79b1f276d740d3768f": "USDC",
-};
+// ──────────────────────────────────────────────────────────────────
+// Active Protection Card — reads from ILShieldCore.positions()
+// ──────────────────────────────────────────────────────────────────
 
-function tokenLabel(addr: string): string {
-  return TOKEN_LABELS[addr.toLowerCase()] || `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+const CORE_ABI = [
+  {
+    name: "nextPositionId",
+    type: "function",
+    stateMutability: "view",
+    inputs: [],
+    outputs: [{ type: "uint256" }],
+  },
+  {
+    name: "positions",
+    type: "function",
+    stateMutability: "view",
+    inputs: [{ name: "id", type: "uint256" }],
+    outputs: [
+      { name: "poolId", type: "bytes32" },
+      { name: "entrySqrtPriceX96", type: "uint160" },
+      { name: "tickLower", type: "int24" },
+      { name: "tickUpper", type: "int24" },
+      { name: "liquidity", type: "uint128" },
+      { name: "coverageTier", type: "uint8" },
+      { name: "coverageStartBlock", type: "uint48" },
+      { name: "coverageEndBlock", type: "uint48" },
+      { name: "premiumBalance", type: "uint256" },
+      { name: "premiumRatePerBlock", type: "uint256" },
+      { name: "lastPremiumBlock", type: "uint256" },
+      { name: "maxPayout", type: "uint256" },
+      { name: "settled", type: "bool" },
+      { name: "owner", type: "address" },
+      { name: "referrer", type: "address" },
+    ],
+  },
+] as const;
+
+interface Protection {
+  ilpnId: number;
+  tier: number;
+  premiumBalance: bigint;
+  settled: boolean;
+  coverageStartBlock: number;
+  coverageEndBlock: number;
+  tickLower: number;
+  tickUpper: number;
 }
 
-function PositionCard({
-  tokenId,
-  onProtect,
-}: {
-  tokenId: bigint;
-  onProtect: (id: bigint) => void;
-}) {
-  const { data, isLoading, isError } = useReadContract({
-    address: POSITION_MANAGER_ADDRESS,
-    abi: POSITION_MANAGER_ABI,
-    functionName: "getPoolAndPositionInfo",
-    args: [tokenId],
+function useActiveProtections() {
+  const { address } = useAccount();
+  const addrs = useChainAddresses();
+
+  const { data: nextId } = useReadContract({
+    address: addrs.ILShieldCore,
+    abi: CORE_ABI,
+    functionName: "nextPositionId",
+    query: { refetchInterval: 30_000 },
   });
 
-  if (isLoading) {
-    return (
-      <div className="animate-pulse rounded-2xl border border-card-border bg-card p-4">
-        <div className="h-5 w-32 rounded bg-input" />
-        <div className="mt-2 h-4 w-48 rounded bg-input" />
-      </div>
-    );
-  }
+  const totalIds = nextId ? Number(nextId as bigint) : 0;
 
-  if (isError || !data) {
-    return (
-      <div className="rounded-2xl border border-card-border bg-card p-4">
-        <div className="text-sm text-text3">Position #{tokenId.toString()} — unable to load</div>
-      </div>
-    );
-  }
+  // Scan all positions to find ones owned by the connected wallet
+  // This is a temporary approach — in production use a subgraph
+  const protections: Protection[] = [];
 
-  const [poolKey, packedInfo] = data as [
-    { currency0: string; currency1: string; fee: number; tickSpacing: number; hooks: string },
-    bigint,
+  // We can't do a dynamic multicall easily here without useReadContracts
+  // For now, read up to 20 most recent positions
+  const scanCount = Math.min(totalIds, 20);
+  const startId = Math.max(0, totalIds - scanCount);
+
+  // Use individual reads for simplicity (wagmi handles caching)
+  return { totalIds, startId, scanCount, coreAddress: addrs.ILShieldCore };
+}
+
+function ProtectionCard({
+  ilpnId,
+  coreAddress,
+  walletAddress,
+}: {
+  ilpnId: number;
+  coreAddress: `0x${string}`;
+  walletAddress: string;
+}) {
+  const { data } = useReadContract({
+    address: coreAddress,
+    abi: CORE_ABI,
+    functionName: "positions",
+    args: [BigInt(ilpnId)],
+  });
+
+  if (!data) return null;
+
+  const [, , tickLower, tickUpper, , coverageTier, coverageStartBlock, coverageEndBlock, premiumBalance, , , , settled, owner] = data as [
+    string, bigint, number, number, bigint, number, number, number, bigint, bigint, bigint, bigint, boolean, string, string
   ];
-  const info = decodePositionInfo(packedInfo);
-  const token0 = tokenLabel(poolKey.currency0);
-  const token1 = tokenLabel(poolKey.currency1);
-  const feePct = (Number(poolKey.fee) / 10000).toFixed(2);
 
+  // Only show positions owned by this wallet
+  if (owner.toLowerCase() !== walletAddress.toLowerCase()) return null;
+
+  const tierLabel = coverageTier === 0 ? "50%" : coverageTier === 1 ? "75%" : "100%";
+  const premiumUSD = Number(premiumBalance) / 1e6;
+  const isActive = !settled && premiumBalance > BigInt(0);
+
+  return (
+    <div className={`rounded-2xl border p-4 transition-colors ${
+      settled ? "border-card-border bg-card/50 opacity-60" : "border-pink/20 bg-card"
+    }`}>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-pink-dim">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pink)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+          </div>
+          <div>
+            <div className="text-sm font-medium text-text1">ILPN #{ilpnId}</div>
+            <div className="text-[12px] text-text3">{tierLabel} coverage</div>
+          </div>
+        </div>
+        <StatusBadge status={settled ? "out-of-range" : isActive ? "active" : "warming"} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 text-[12px]">
+        <div className="rounded-xl bg-input p-2">
+          <div className="text-text3">Premium left</div>
+          <div className="font-mono text-text1">${premiumUSD.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
+        </div>
+        <div className="rounded-xl bg-input p-2">
+          <div className="text-text3">Ticks</div>
+          <div className="font-mono text-text1">{tickLower} → {tickUpper}</div>
+        </div>
+      </div>
+
+      {settled && (
+        <div className="mt-2 text-center text-[12px] text-text3">Settled</div>
+      )}
+    </div>
+  );
+}
+
+// ──────────────────────────────────────────────────────────────────
+// LP Position Card
+// ──────────────────────────────────────────────────────────────────
+
+function LPPositionCard({
+  position,
+  dex,
+  onProtect,
+}: {
+  position: UserPosition;
+  dex: DexConfig;
+  onProtect: (id: bigint) => void;
+}) {
   return (
     <div className="rounded-2xl border border-card-border bg-card p-4 transition-colors hover:border-pink/20">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          {/* Token pair logos */}
           <div className="flex items-center">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#627EEA] text-xs font-bold text-white">
-              {token0[0]}
+              {position.token0[0]}
             </div>
             <div className="-ml-2 flex h-8 w-8 items-center justify-center rounded-full bg-[#2775CA] text-xs font-bold text-white" style={{ border: "2px solid var(--card)" }}>
-              {token1[0]}
+              {position.token1[0]}
             </div>
           </div>
           <div>
             <div className="text-base font-semibold text-text1">
-              {token0}/{token1}
+              {position.token0}/{position.token1}
             </div>
-            <div className="text-xs text-text3">{feePct}% fee · ID #{tokenId.toString()}</div>
+            <div className="flex items-center gap-1.5 text-[12px] text-text3">
+              <DexLogo dexId={dex.id} size={12} />
+              <span>{dex.shortName}</span>
+              <span>·</span>
+              <span>{position.feePct} fee</span>
+              <span>·</span>
+              <span>#{position.tokenId.toString()}</span>
+            </div>
           </div>
         </div>
         <StatusBadge status="in-range" />
       </div>
 
-      <div className="mt-3 flex items-center justify-between rounded-xl bg-input px-3 py-2">
+      <div className="mt-3 flex items-center justify-between rounded-xl bg-input px-3 py-2.5">
         <div>
           <div className="text-[12px] font-medium uppercase tracking-[0.05em] text-text3">Tick range</div>
           <div className="font-mono text-sm text-text1">
-            {info.tickLower.toLocaleString()} → {info.tickUpper.toLocaleString()}
+            {position.tickLower.toLocaleString()} → {position.tickUpper.toLocaleString()}
           </div>
         </div>
         <button
-          onClick={() => onProtect(tokenId)}
+          onClick={() => onProtect(position.tokenId)}
           className="rounded-[16px] bg-pink-cta px-5 py-2.5 text-sm font-semibold text-pink-cta-text transition-colors hover:brightness-110"
         >
           Protect
@@ -102,6 +210,10 @@ function PositionCard({
     </div>
   );
 }
+
+// ──────────────────────────────────────────────────────────────────
+// Manual Entry
+// ──────────────────────────────────────────────────────────────────
 
 function ManualEntry({ onProtect }: { onProtect: (id: bigint) => void }) {
   const [manualId, setManualId] = useState("");
@@ -113,22 +225,18 @@ function ManualEntry({ onProtect }: { onProtect: (id: bigint) => void }) {
         <input
           type="text"
           inputMode="numeric"
-          placeholder="e.g. 12345"
+          placeholder="e.g. 226129"
           value={manualId}
           onChange={(e) => {
             if (/^\d*$/.test(e.target.value)) setManualId(e.target.value);
           }}
-          className="flex-1 rounded-xl bg-input px-3 py-2 text-sm text-text1 outline-none placeholder:text-text3 focus:ring-1 focus:ring-pink/30"
+          className="flex-1 rounded-xl bg-input px-3 py-2.5 text-sm text-text1 outline-none placeholder:text-text3 focus:ring-1 focus:ring-pink/30"
         />
         <button
-          onClick={() => {
-            if (manualId) onProtect(BigInt(manualId));
-          }}
+          onClick={() => { if (manualId) onProtect(BigInt(manualId)); }}
           disabled={!manualId}
           className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition-colors ${
-            manualId
-              ? "bg-pink-cta text-pink-cta-text hover:brightness-110"
-              : "bg-input text-text3"
+            manualId ? "bg-pink-cta text-pink-cta-text hover:brightness-110" : "bg-input text-text3"
           }`}
         >
           Protect
@@ -138,39 +246,28 @@ function ManualEntry({ onProtect }: { onProtect: (id: bigint) => void }) {
   );
 }
 
+// ──────────────────────────────────────────────────────────────────
+// Main Page
+// ──────────────────────────────────────────────────────────────────
+
 export default function PositionsPage() {
   const { address, isConnected } = useAccount();
+  const chainId = useChainId();
 
-  // Read user's position count from PositionManager
-  const { data: balanceData } = useReadContract({
-    address: POSITION_MANAGER_ADDRESS,
-    abi: POSITION_MANAGER_ABI,
-    functionName: "balanceOf",
-    args: address ? [address] : undefined,
-    query: { enabled: !!address },
-  });
+  // DEX selection for position scanning
+  const availableDexes = useMemo(() => getDeployedDexesForChain(chainId), [chainId]);
+  const [selectedDex, setSelectedDex] = useState<DexConfig | null>(null);
+  useEffect(() => {
+    if (availableDexes.length > 0 && !selectedDex) setSelectedDex(availableDexes[0]);
+  }, [availableDexes, selectedDex]);
 
-  const positionCount = balanceData ? Number(balanceData as bigint) : 0;
+  // Auto-detect positions from selected DEX
+  const { positions, positionCount, isLoading, hasPositionManager } = useUserPositions(selectedDex, chainId);
 
-  // Build calls to get each tokenId
-  const tokenIdCalls = Array.from({ length: Math.min(positionCount, 50) }, (_, i) => ({
-    address: POSITION_MANAGER_ADDRESS,
-    abi: POSITION_MANAGER_ABI,
-    functionName: "tokenOfOwnerByIndex" as const,
-    args: [address!, BigInt(i)] as const,
-  }));
-
-  const { data: tokenIdsData } = useReadContracts({
-    contracts: tokenIdCalls,
-    query: { enabled: positionCount > 0 && !!address },
-  });
-
-  const tokenIds: bigint[] = (tokenIdsData || [])
-    .filter((r) => r.status === "success" && r.result !== undefined)
-    .map((r) => r.result as bigint);
+  // Active protections
+  const { totalIds, startId, coreAddress } = useActiveProtections();
 
   const handleProtect = (positionId: bigint) => {
-    // Navigate to protect page with position ID as query param
     window.location.href = `/?positionId=${positionId.toString()}`;
   };
 
@@ -184,52 +281,98 @@ export default function PositionsPage() {
             Your positions
           </h1>
           <p className="mb-8 text-center text-sm text-text2">
-            Select a Uniswap v4 position to protect against impermanent loss.
+            View your LP positions and active IL protection.
           </p>
 
-          <div className="w-full max-w-[520px] space-y-3">
-            {!isConnected ? (
-              <div className="rounded-3xl border border-card-border bg-card p-8 text-center">
-                <div className="mb-3 flex justify-center">
-                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.5">
+          <div className="w-full max-w-[600px] space-y-6">
+
+            {/* ── Active Protections ── */}
+            {isConnected && totalIds > 0 && (
+              <div>
+                <div className="flex items-center gap-2 mb-3">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pink)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                   </svg>
+                  <span className="text-sm font-medium text-text1">Active Protection</span>
                 </div>
-                <div className="mb-1 text-base font-medium text-text1">Connect your wallet</div>
-                <div className="text-sm text-text3">
-                  Connect to see your Uniswap v4 LP positions eligible for IL protection.
+                <div className="space-y-2">
+                  {Array.from({ length: Math.min(totalIds, 20) }, (_, i) => (
+                    <ProtectionCard
+                      key={i}
+                      ilpnId={Math.max(0, totalIds - 1 - i)}
+                      coreAddress={coreAddress}
+                      walletAddress={address || ""}
+                    />
+                  ))}
                 </div>
               </div>
-            ) : positionCount === 0 ? (
-              <>
+            )}
+
+            {/* ── LP Positions ── */}
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-medium text-text1">LP Positions</span>
+                {availableDexes.length > 0 && selectedDex && (
+                  <DexSelector
+                    available={availableDexes}
+                    selected={selectedDex}
+                    onSelect={setSelectedDex}
+                  />
+                )}
+              </div>
+
+              {!isConnected ? (
                 <div className="rounded-3xl border border-card-border bg-card p-8 text-center">
                   <div className="mb-3 flex justify-center">
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.5">
-                      <circle cx="12" cy="12" r="10" />
-                      <path d="M8 12h8M12 8v8" />
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                     </svg>
                   </div>
-                  <div className="mb-1 text-base font-medium text-text1">No positions found</div>
-                  <div className="mb-4 text-sm text-text3">
-                    No Uniswap v4 positions detected for this wallet on Unichain Sepolia.
-                    You can enter a position ID manually below.
+                  <div className="mb-1 text-base font-medium text-text1">Connect your wallet</div>
+                  <div className="text-sm text-text3">
+                    Connect to see your LP positions and active protections.
                   </div>
                 </div>
+              ) : isLoading ? (
+                <div className="space-y-3">
+                  {[1, 2].map((i) => (
+                    <div key={i} className="animate-pulse rounded-2xl border border-card-border bg-card p-4">
+                      <div className="h-5 w-32 rounded bg-input" />
+                      <div className="mt-2 h-4 w-48 rounded bg-input" />
+                    </div>
+                  ))}
+                </div>
+              ) : positions.length === 0 ? (
+                <div className="rounded-3xl border border-card-border bg-card p-8 text-center">
+                  <div className="mb-1 text-base font-medium text-text1">
+                    No {selectedDex?.name || "LP"} positions found
+                  </div>
+                  <div className="mb-4 text-sm text-text3">
+                    {hasPositionManager
+                      ? `No positions detected on ${selectedDex?.name || "this DEX"}. Try a different DEX or enter a position ID manually.`
+                      : "Position manager not available on this chain."}
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="text-[12px] text-text3">
+                    {positions.length} position{positions.length !== 1 ? "s" : ""} on {selectedDex?.name}
+                  </div>
+                  {positions.map((pos) => (
+                    <LPPositionCard
+                      key={pos.tokenId.toString()}
+                      position={pos}
+                      dex={selectedDex!}
+                      onProtect={handleProtect}
+                    />
+                  ))}
+                </div>
+              )}
+
+              <div className="mt-3">
                 <ManualEntry onProtect={handleProtect} />
-              </>
-            ) : (
-              <>
-                <div className="mb-1 text-sm text-text3">
-                  {positionCount} position{positionCount !== 1 ? "s" : ""} found
-                </div>
-                {tokenIds.map((id) => (
-                  <PositionCard key={id.toString()} tokenId={id} onProtect={handleProtect} />
-                ))}
-                <div className="mt-2 border-t border-card-border pt-3">
-                  <ManualEntry onProtect={handleProtect} />
-                </div>
-              </>
-            )}
+              </div>
+            </div>
           </div>
         </main>
       </div>

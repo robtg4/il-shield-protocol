@@ -21,6 +21,7 @@ function ShieldIcon({ size = 16 }: { size?: number }) {
 const navLinks = [
   { label: "Protect", href: "/" },
   { label: "Positions", href: "/positions" },
+  { label: "Vaults", href: "/vaults" },
 ];
 
 const CONNECTOR_LABELS: Record<string, string> = {

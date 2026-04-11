@@ -77,13 +77,14 @@ export function usePremiumQuote(
 
     const ratePerBlockWad = result.result as bigint;
     // Oracle returns rate in 18 decimals per unit liquidity per block.
-    // Contract converts to 6 dec USDC: premiumRate = rateWad / 1e12
-    // minPremium = premiumRate * durationBlocks (in 6-dec USDC)
-    const ratePerBlock6Dec = ratePerBlockWad / BigInt(1e12);
-    const totalCost6Dec = ratePerBlock6Dec * durationBlocks;
+    // IMPORTANT: multiply by blocks FIRST, then divide by 1e12 to preserve precision.
+    // Dividing per-block rate by 1e12 first truncates to 0 for small rates.
+    const totalCostWad = ratePerBlockWad * durationBlocks;
+    const totalCost6Dec = totalCostWad / BigInt(1e12);
     const totalCostUSD = Number(totalCost6Dec) / 1e6;
 
-    const dailyCost6Dec = ratePerBlock6Dec * blocksPerDay;
+    const dailyCostWad = ratePerBlockWad * blocksPerDay;
+    const dailyCost6Dec = dailyCostWad / BigInt(1e12);
     const dailyCostUSD = Number(dailyCost6Dec) / 1e6;
     const monthlyCostUSD = dailyCostUSD * 30;
 

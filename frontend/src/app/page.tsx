@@ -41,6 +41,8 @@ import { getDeployedDexesForChain, type DexConfig } from "@/config/dex-registry"
 import { usePremiumQuote } from "@/hooks/usePremiumQuote";
 import { PremiumCostBreakdown } from "@/components/PremiumCostBreakdown";
 import { TxProgressOverlay } from "@/components/TxProgressOverlay";
+import { useActiveProtections } from "@/hooks/useActiveProtections";
+import { ProtectionsList } from "@/components/ProtectionCard";
 
 type Screen = "protect" | "active" | "settlement";
 
@@ -153,6 +155,9 @@ function HomeInner() {
     selectedTier,
     selectedDuration,
   );
+
+  // Active protections — always visible when wallet connected
+  const { active: activeProtections, settled: settledProtections, isLoading: protectionsLoading } = useActiveProtections();
 
   // Active screen state
   const [warmingPercent, setWarmingPercent] = useState(0);
@@ -458,6 +463,28 @@ function HomeInner() {
                   )}
                 </div>
               </div>
+
+              {/* ── Your Protections ── */}
+              {isConnected && (activeProtections.length > 0 || settledProtections.length > 0 || protectionsLoading) && (
+                <div className="w-full max-w-[1000px] mt-6">
+                  <div className="flex items-center gap-2 mb-3">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pink)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                    <span className="text-sm font-medium text-text1">
+                      Your Protections
+                      {activeProtections.length > 0 && (
+                        <span className="ml-1.5 text-[12px] text-pink">({activeProtections.length} active)</span>
+                      )}
+                    </span>
+                  </div>
+                  <ProtectionsList
+                    active={activeProtections}
+                    settled={settledProtections}
+                    isLoading={protectionsLoading}
+                  />
+                </div>
+              )}
 
               <div className="mt-6">
                 <SupportedDexRow />

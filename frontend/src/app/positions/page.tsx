@@ -1,155 +1,16 @@
 "use client";
 
 import { useState, useMemo, useEffect } from "react";
-import { useAccount, useChainId, useReadContract } from "wagmi";
+import { useAccount, useChainId } from "wagmi";
 import { BackgroundOrbs } from "@/components/BackgroundOrbs";
 import { NavBar } from "@/components/NavBar";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DexSelector } from "@/components/DexSelector";
 import { DexLogo } from "@/components/DexLogo";
 import { useUserPositions, type UserPosition } from "@/hooks/useUserPositions";
-import { useChainAddresses } from "@/hooks/useILShield";
+import { useActiveProtections } from "@/hooks/useActiveProtections";
+import { ProtectionsList } from "@/components/ProtectionCard";
 import { getDeployedDexesForChain, type DexConfig } from "@/config/dex-registry";
-
-// ──────────────────────────────────────────────────────────────────
-// Active Protection Card — reads from ILShieldCore.positions()
-// ──────────────────────────────────────────────────────────────────
-
-const CORE_ABI = [
-  {
-    name: "nextPositionId",
-    type: "function",
-    stateMutability: "view",
-    inputs: [],
-    outputs: [{ type: "uint256" }],
-  },
-  {
-    name: "positions",
-    type: "function",
-    stateMutability: "view",
-    inputs: [{ name: "id", type: "uint256" }],
-    outputs: [
-      { name: "poolId", type: "bytes32" },
-      { name: "entrySqrtPriceX96", type: "uint160" },
-      { name: "tickLower", type: "int24" },
-      { name: "tickUpper", type: "int24" },
-      { name: "liquidity", type: "uint128" },
-      { name: "coverageTier", type: "uint8" },
-      { name: "coverageStartBlock", type: "uint48" },
-      { name: "coverageEndBlock", type: "uint48" },
-      { name: "premiumBalance", type: "uint256" },
-      { name: "premiumRatePerBlock", type: "uint256" },
-      { name: "lastPremiumBlock", type: "uint256" },
-      { name: "maxPayout", type: "uint256" },
-      { name: "settled", type: "bool" },
-      { name: "owner", type: "address" },
-      { name: "referrer", type: "address" },
-    ],
-  },
-] as const;
-
-interface Protection {
-  ilpnId: number;
-  tier: number;
-  premiumBalance: bigint;
-  settled: boolean;
-  coverageStartBlock: number;
-  coverageEndBlock: number;
-  tickLower: number;
-  tickUpper: number;
-}
-
-function useActiveProtections() {
-  const { address } = useAccount();
-  const addrs = useChainAddresses();
-
-  const { data: nextId } = useReadContract({
-    address: addrs.ILShieldCore,
-    abi: CORE_ABI,
-    functionName: "nextPositionId",
-    query: { refetchInterval: 30_000 },
-  });
-
-  const totalIds = nextId ? Number(nextId as bigint) : 0;
-
-  // Scan all positions to find ones owned by the connected wallet
-  // This is a temporary approach — in production use a subgraph
-  const protections: Protection[] = [];
-
-  // We can't do a dynamic multicall easily here without useReadContracts
-  // For now, read up to 20 most recent positions
-  const scanCount = Math.min(totalIds, 20);
-  const startId = Math.max(0, totalIds - scanCount);
-
-  // Use individual reads for simplicity (wagmi handles caching)
-  return { totalIds, startId, scanCount, coreAddress: addrs.ILShieldCore };
-}
-
-function ProtectionCard({
-  ilpnId,
-  coreAddress,
-  walletAddress,
-}: {
-  ilpnId: number;
-  coreAddress: `0x${string}`;
-  walletAddress: string;
-}) {
-  const { data } = useReadContract({
-    address: coreAddress,
-    abi: CORE_ABI,
-    functionName: "positions",
-    args: [BigInt(ilpnId)],
-  });
-
-  if (!data) return null;
-
-  const [, , tickLower, tickUpper, , coverageTier, coverageStartBlock, coverageEndBlock, premiumBalance, , , , settled, owner] = data as [
-    string, bigint, number, number, bigint, number, number, number, bigint, bigint, bigint, bigint, boolean, string, string
-  ];
-
-  // Only show positions owned by this wallet
-  if (owner.toLowerCase() !== walletAddress.toLowerCase()) return null;
-
-  const tierLabel = coverageTier === 0 ? "50%" : coverageTier === 1 ? "75%" : "100%";
-  const premiumUSD = Number(premiumBalance) / 1e6;
-  const isActive = !settled && premiumBalance > BigInt(0);
-
-  return (
-    <div className={`rounded-2xl border p-4 transition-colors ${
-      settled ? "border-card-border bg-card/50 opacity-60" : "border-pink/20 bg-card"
-    }`}>
-      <div className="flex items-center justify-between mb-2">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-pink-dim">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pink)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            </svg>
-          </div>
-          <div>
-            <div className="text-sm font-medium text-text1">ILPN #{ilpnId}</div>
-            <div className="text-[12px] text-text3">{tierLabel} coverage</div>
-          </div>
-        </div>
-        <StatusBadge status={settled ? "out-of-range" : isActive ? "active" : "warming"} />
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 text-[12px]">
-        <div className="rounded-xl bg-input p-2">
-          <div className="text-text3">Premium left</div>
-          <div className="font-mono text-text1">${premiumUSD.toLocaleString(undefined, { maximumFractionDigits: 2 })}</div>
-        </div>
-        <div className="rounded-xl bg-input p-2">
-          <div className="text-text3">Ticks</div>
-          <div className="font-mono text-text1">{tickLower} → {tickUpper}</div>
-        </div>
-      </div>
-
-      {settled && (
-        <div className="mt-2 text-center text-[12px] text-text3">Settled</div>
-      )}
-    </div>
-  );
-}
 
 // ──────────────────────────────────────────────────────────────────
 // LP Position Card
@@ -251,21 +112,21 @@ function ManualEntry({ onProtect }: { onProtect: (id: bigint) => void }) {
 // ──────────────────────────────────────────────────────────────────
 
 export default function PositionsPage() {
-  const { address, isConnected } = useAccount();
+  const { isConnected } = useAccount();
   const chainId = useChainId();
 
-  // DEX selection for position scanning
+  // DEX selection
   const availableDexes = useMemo(() => getDeployedDexesForChain(chainId), [chainId]);
   const [selectedDex, setSelectedDex] = useState<DexConfig | null>(null);
   useEffect(() => {
     if (availableDexes.length > 0 && !selectedDex) setSelectedDex(availableDexes[0]);
   }, [availableDexes, selectedDex]);
 
-  // Auto-detect positions from selected DEX
-  const { positions, positionCount, isLoading, hasPositionManager } = useUserPositions(selectedDex, chainId);
+  // LP positions from selected DEX
+  const { positions, isLoading, hasPositionManager } = useUserPositions(selectedDex, chainId);
 
-  // Active protections
-  const { totalIds, startId, coreAddress } = useActiveProtections();
+  // Active protections from ILShieldCore
+  const { active, settled, isLoading: protectionsLoading } = useActiveProtections();
 
   const handleProtect = (positionId: bigint) => {
     window.location.href = `/?positionId=${positionId.toString()}`;
@@ -287,24 +148,24 @@ export default function PositionsPage() {
           <div className="w-full max-w-[600px] space-y-6">
 
             {/* ── Active Protections ── */}
-            {isConnected && totalIds > 0 && (
+            {isConnected && (
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pink)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                   </svg>
-                  <span className="text-sm font-medium text-text1">Active Protection</span>
+                  <span className="text-sm font-medium text-text1">
+                    Your Protections
+                    {active.length > 0 && (
+                      <span className="ml-1.5 text-[12px] text-pink">({active.length} active)</span>
+                    )}
+                  </span>
                 </div>
-                <div className="space-y-2">
-                  {Array.from({ length: Math.min(totalIds, 20) }, (_, i) => (
-                    <ProtectionCard
-                      key={i}
-                      ilpnId={Math.max(0, totalIds - 1 - i)}
-                      coreAddress={coreAddress}
-                      walletAddress={address || ""}
-                    />
-                  ))}
-                </div>
+                <ProtectionsList
+                  active={active}
+                  settled={settled}
+                  isLoading={protectionsLoading}
+                />
               </div>
             )}
 

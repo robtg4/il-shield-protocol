@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
-import { useAccount, useChainId } from "wagmi";
+import { useAccount, useChainId, useBlockNumber, useReadContract } from "wagmi";
 import { useSearchParams } from "next/navigation";
 import { parseUnits } from "viem";
 import { BackgroundOrbs } from "@/components/BackgroundOrbs";
@@ -159,9 +159,11 @@ function HomeInner() {
   // Active protections — always visible when wallet connected
   const { active: activeProtections, settled: settledProtections, isLoading: protectionsLoading } = useActiveProtections();
 
-  // Active screen state
-  const [warmingPercent, setWarmingPercent] = useState(0);
-  const [premiumBalance, setPremiumBalance] = useState(0);
+  // Active screen: the ILPN ID of the just-registered position
+  const [activeIlpnId, setActiveIlpnId] = useState<number | null>(null);
+
+  // Read the active protection's on-chain data
+  const activeProtection = activeProtections.find((p) => p.ilpnId === activeIlpnId) ?? activeProtections[0] ?? null;
 
   // Compute derived values
   const coveragePct = selectedTier === 0 ? 50 : selectedTier === 1 ? 75 : 100;
@@ -196,8 +198,9 @@ function HomeInner() {
     if (isRegisterSuccess) {
       setTxStep("idle");
       setScreen("active");
-      setPremiumBalance(parseFloat(premiumAmount) || 0);
       usdcBalance.refetch();
+      // The newest protection will appear in activeProtections after refetch
+      setActiveIlpnId(null); // will auto-pick the latest
     }
   }, [isRegisterSuccess]);
 
@@ -207,30 +210,13 @@ function HomeInner() {
     }
   }, [isSettleSuccess]);
 
-  // Simulate warming on active screen
-  useEffect(() => {
-    if (screen !== "active") return;
-    setWarmingPercent(0);
-    const interval = setInterval(() => {
-      setWarmingPercent((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
-        }
-        return prev + 2;
-      });
-    }, 100);
-    return () => clearInterval(interval);
-  }, [screen]);
-
-  // Simulate premium depletion
-  useEffect(() => {
-    if (screen !== "active" || premiumBalance <= 0) return;
-    const interval = setInterval(() => {
-      setPremiumBalance((prev) => Math.max(0, prev - 0.01));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [screen, premiumBalance]);
+  // Read current block number for warming/coverage calculations
+  const { data: blockNumberData } = useReadContract({
+    address: addrs.ILShieldCore,
+    abi: [{ name: "warmingPeriodBlocks", type: "function", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] }] as const,
+    functionName: "warmingPeriodBlocks",
+    query: { refetchInterval: 12_000 },
+  });
 
   const handleProtect = useCallback(() => {
     if (!isConnected || !premiumAmount) return;
@@ -265,9 +251,34 @@ function HomeInner() {
   }, []);
 
   const isTxPending = isApproving || isApproveConfirming || isRegistering || isRegisterConfirming;
-  const initialPremium = parseFloat(premiumAmount) || 100;
-  const premBalPercent = initialPremium > 0 ? (premiumBalance / initialPremium) * 100 : 0;
-  const daysRemaining = premiumBalance > 0 ? Math.round(premiumBalance * 30) : 0;
+
+  // Derive active screen values from real on-chain data
+  const { data: currentBlockData } = useBlockNumber({ watch: true });
+  const currentBlock = currentBlockData ? Number(currentBlockData) : 0;
+
+  const activePremiumBalance = activeProtection ? Number(activeProtection.premiumBalance) / 1e6 : 0;
+  const activePremiumDeposit = parseFloat(premiumAmount) || activePremiumBalance || 100;
+  const premBalPercent = activePremiumDeposit > 0 ? (activePremiumBalance / activePremiumDeposit) * 100 : 0;
+
+  // Warming: compare current block vs coverageStartBlock
+  const warmingPeriod = Number(blockNumberData || 10);
+  const coverageStart = activeProtection ? activeProtection.coverageStartBlock : 0;
+  const coverageEnd = activeProtection ? activeProtection.coverageEndBlock : 0;
+  const warmingPercent = coverageStart > 0 && currentBlock > 0
+    ? Math.min(100, Math.max(0, Math.round(((currentBlock - (coverageStart - warmingPeriod)) / warmingPeriod) * 100)))
+    : 0;
+
+  // Days remaining from premium rate
+  const premRatePerBlock = activeProtection ? Number(activeProtection.premiumRatePerBlock) : 0;
+  const premRatePerBlockUSDC = premRatePerBlock / 1e12; // 18-dec → 6-dec
+  const blocksPerDay = 7200;
+  const daysRemaining = premRatePerBlockUSDC > 0
+    ? Math.round((activePremiumBalance * 1e6) / (premRatePerBlockUSDC * blocksPerDay))
+    : (coverageEnd > 0 && currentBlock > 0 ? Math.round((coverageEnd - currentBlock) / blocksPerDay) : 0);
+
+  // Duration label from real coverage window
+  const coverageDurationBlocks = coverageEnd - coverageStart;
+  const coverageDurationDays = coverageDurationBlocks > 0 ? Math.round(coverageDurationBlocks / blocksPerDay) : 0;
 
   const ctaText = () => {
     if (!isConnected) return "Connect wallet";
@@ -509,8 +520,17 @@ function HomeInner() {
               <div className="w-full max-w-[480px] rounded-3xl border border-card-border bg-card p-4">
                 <div className="mb-3 flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <TokenPairSelector token0="ETH" token1="USDC" />
-                    <span className="text-[13px] text-text3">0.30%</span>
+                    {selectedPosition ? (
+                      <>
+                        <TokenPairSelector token0={selectedPosition.token0} token1={selectedPosition.token1} />
+                        <span className="text-[13px] text-text3">{selectedPosition.feePct}</span>
+                      </>
+                    ) : (
+                      <>
+                        <TokenPairSelector token0="ETH" token1="USDC" />
+                        <span className="text-[13px] text-text3">0.30%</span>
+                      </>
+                    )}
                   </div>
                   <StatusBadge
                     status={warmingPercent >= 100 ? "active" : "warming"}
@@ -518,38 +538,52 @@ function HomeInner() {
                   />
                 </div>
 
+                {/* Coverage info from real position */}
                 <div className="mb-1 flex items-center justify-between text-[13px]">
                   <span className="text-text3">
-                    {coveragePct}% · {durationLabel}
+                    {coveragePct}% coverage · {coverageDurationDays > 0 ? `${coverageDurationDays}d` : durationLabel}
                   </span>
                   <span className={warmingPercent >= 100 ? "text-green" : "text-amber"}>
-                    {warmingPercent}%
+                    {warmingPercent >= 100 ? "Active" : `${warmingPercent}% warming`}
                   </span>
                 </div>
                 <ProgressBar percent={warmingPercent} color={warmingPercent >= 100 ? "green" : "amber"} />
 
-                <div className="mt-4">
-                  <PLCards il="-$0.00" covered="+$0.00" exposure="$0.00" exposurePositive />
-                </div>
-
-                {/* Premium balance */}
+                {/* Premium balance — real on-chain data */}
                 <div className="mt-3 rounded-2xl bg-input p-3">
                   <div className="mb-1 flex items-center justify-between">
                     <span className="text-[13px] text-text3">Premium balance</span>
                     <span className="font-mono text-sm text-text1">
-                      ${premiumBalance.toFixed(2)}
+                      ${activePremiumBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
                     </span>
                   </div>
-                  <ProgressBar percent={premBalPercent} color={premBalPercent < 20 ? "amber" : "pink"} />
+                  <ProgressBar percent={Math.max(0, Math.min(100, premBalPercent))} color={premBalPercent < 20 ? "amber" : "pink"} />
                   <div className="mt-2 flex items-center justify-between">
                     <span className={`font-mono text-xs ${premBalPercent < 20 ? "text-amber" : "text-text3"}`}>
                       streaming per-block
                     </span>
                     <span className={`text-xs ${premBalPercent < 20 ? "text-amber" : "text-text3"}`}>
-                      ~{daysRemaining}d remaining
+                      {daysRemaining > 0 ? `~${daysRemaining}d remaining` : coverageDurationDays > 0 ? `${coverageDurationDays}d coverage` : "—"}
                     </span>
                   </div>
                 </div>
+
+                {activeProtection && (
+                  <div className="mt-3 space-y-0.5 px-1 text-[12px]">
+                    <div className="flex justify-between">
+                      <span className="text-text3">ILPN ID</span>
+                      <span className="font-mono text-text2">#{activeProtection.ilpnId}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-text3">Coverage blocks</span>
+                      <span className="font-mono text-text2">{coverageStart} → {coverageEnd}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-text3">Max payout</span>
+                      <span className="font-mono text-text2">${(Number(activeProtection.maxPayout) / 1e6).toLocaleString()}</span>
+                    </div>
+                  </div>
+                )}
 
                 {/* Actions */}
                 <div className="mt-4 flex gap-2">

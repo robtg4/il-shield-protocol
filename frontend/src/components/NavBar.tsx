@@ -22,6 +22,8 @@ const navLinks = [
   { label: "Protect", href: "/" },
   { label: "Positions", href: "/positions" },
   { label: "Vaults", href: "/vaults" },
+  { label: "About", href: "/about" },
+  { label: "Research", href: "/research" },
 ];
 
 const CONNECTOR_LABELS: Record<string, string> = {

@@ -10,13 +10,17 @@ const TIER_LABELS = ["50%", "75%", "100%"];
 const BLOCKS_PER_DAY = 7200;
 
 /**
- * Derive a sqrtPriceX96 from Chainlink ETH/USD price.
- * For a USDC/WETH pool (token0=USDC, token1=WETH): price = ethPriceUSD
- * sqrtPriceX96 = sqrt(price) * 2^96
+ * Derive sqrtPriceX96 from Chainlink ETH/USD for a USDC(6dec)/WETH(18dec) pool.
+ *
+ * Uniswap price = token1_wei / token0_wei = WETH_wei per USDC_wei.
+ * If ETH costs $P in USDC: 1 USDC_wei = (1e-6 / P) ETH = (1e-6 / P) * 1e18 WETH_wei.
+ * So rawPrice = 1e12 / P.
+ * sqrtPriceX96 = sqrt(1e12 / P) * 2^96.
  */
 function ethPriceToSqrtPriceX96(ethPriceUSD: number): bigint {
   if (ethPriceUSD <= 0) return BigInt(0);
-  const sqrtPrice = Math.sqrt(ethPriceUSD);
+  const rawPrice = 1e12 / ethPriceUSD;
+  const sqrtPrice = Math.sqrt(rawPrice);
   const Q96 = Number(BigInt(2) ** BigInt(96));
   return BigInt(Math.round(sqrtPrice * Q96));
 }
@@ -80,22 +84,12 @@ export function ProtectionCard({ protection }: { protection: ActiveProtection })
       currentPayoutRaw = protection.maxPayout;
     }
 
-    // Convert to USD — token1 is WETH (18 dec) for USDC/WETH pool
-    // IL is in token1 terms. For USDC/WETH: token1 = WETH, so multiply by ETH price
-    // For WETH/USDC (token0=WETH): token1 = USDC (6 dec, $1)
-    // Detect from entry price magnitude — if entry sqrtPrice is very large, token0 is USDC
-    const entryPrice = Number(protection.entrySqrtPriceX96);
-    const isToken1WETH = entryPrice > 1e30; // USDC/WETH pools have very large sqrtPriceX96
-
-    if (isToken1WETH) {
-      // IL is in WETH terms (18 dec)
-      currentILUSD = tokenAmountToUSD(currentILRaw, 18, chainlink.price);
-      currentPayoutUSD = tokenAmountToUSD(currentPayoutRaw, 18, chainlink.price);
-    } else {
-      // IL is in USDC terms (6 dec)
-      currentILUSD = tokenAmountToUSD(currentILRaw, 6, 1);
-      currentPayoutUSD = tokenAmountToUSD(currentPayoutRaw, 6, 1);
-    }
+    // For this pool (USDC/WETH): token0=USDC(6dec), token1=WETH(18dec)
+    // IL is computed in token1 terms = WETH. Convert to USD by multiplying by ETH price.
+    // The entry sqrtPriceX96 for a USDC/WETH pool is ~1.96e33 which confirms
+    // token1 is the high-decimal token (WETH).
+    currentILUSD = tokenAmountToUSD(currentILRaw, 18, chainlink.price);
+    currentPayoutUSD = tokenAmountToUSD(currentPayoutRaw, 18, chainlink.price);
   }
 
   // Net ROI if settled now

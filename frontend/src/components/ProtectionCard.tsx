@@ -1,15 +1,42 @@
 "use client";
 
+import { useBlockNumber } from "wagmi";
 import type { ActiveProtection } from "@/hooks/useActiveProtections";
+import { ProgressBar } from "./ProgressBar";
 
 const TIER_LABELS = ["50%", "75%", "100%"];
+const BLOCKS_PER_DAY = 7200;
 
 export function ProtectionCard({ protection }: { protection: ActiveProtection }) {
+  const { data: blockNum } = useBlockNumber({ watch: true });
+  const currentBlock = blockNum ? Number(blockNum) : 0;
+
   const tierLabel = TIER_LABELS[protection.coverageTier] || "?";
-  const premiumUSD = Number(protection.premiumBalance) / 1e6;
+  const premiumBalUSD = Number(protection.premiumBalance) / 1e6;
+  const premiumDepositUSD = Number(protection.premiumDeposit) / 1e6;
   const maxPayoutUSD = Number(protection.maxPayout) / 1e6;
   const isActive = !protection.settled && protection.premiumBalance > BigInt(0);
   const isDepleted = !protection.settled && protection.premiumBalance === BigInt(0);
+
+  // Time calculations
+  const coverageDurationBlocks = protection.coverageEndBlock - protection.coverageStartBlock;
+  const coverageDurationDays = coverageDurationBlocks / BLOCKS_PER_DAY;
+  const blocksRemaining = Math.max(0, protection.coverageEndBlock - currentBlock);
+  const daysRemaining = blocksRemaining / BLOCKS_PER_DAY;
+  const coverageElapsedPct = coverageDurationBlocks > 0
+    ? Math.min(100, Math.max(0, ((currentBlock - protection.coverageStartBlock) / coverageDurationBlocks) * 100))
+    : 0;
+
+  // Premium streaming
+  const ratePerBlockUSD = Number(protection.premiumRatePerBlock) * BLOCKS_PER_DAY / 1e12 / 1e6;
+  const premiumStreamedUSD = premiumDepositUSD - premiumBalUSD;
+  const premiumPctRemaining = premiumDepositUSD > 0 ? (premiumBalUSD / premiumDepositUSD) * 100 : 0;
+
+  // ROI: if settled with max payout, net = maxPayout - premiumDeposit
+  // Current "potential" ROI based on max coverage
+  const potentialPayoutUSD = maxPayoutUSD;
+  const netROI = potentialPayoutUSD - premiumDepositUSD;
+  const roiPct = premiumDepositUSD > 0 ? (netROI / premiumDepositUSD) * 100 : 0;
 
   return (
     <div className={`rounded-2xl border p-4 ${
@@ -19,6 +46,7 @@ export function ProtectionCard({ protection }: { protection: ActiveProtection })
           ? "border-pink/30 bg-card"
           : "border-amber/30 bg-card"
     }`}>
+      {/* Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <div className={`flex h-9 w-9 items-center justify-center rounded-full ${
@@ -32,11 +60,9 @@ export function ProtectionCard({ protection }: { protection: ActiveProtection })
             </svg>
           </div>
           <div>
-            <div className="text-sm font-semibold text-text1">
-              Protection #{protection.ilpnId}
-            </div>
+            <div className="text-sm font-semibold text-text1">Protection #{protection.ilpnId}</div>
             <div className="text-[12px] text-text3">
-              {tierLabel} coverage · ticks {protection.tickLower} → {protection.tickUpper}
+              {tierLabel} coverage · {coverageDurationDays.toFixed(0)}d plan
             </div>
           </div>
         </div>
@@ -51,20 +77,73 @@ export function ProtectionCard({ protection }: { protection: ActiveProtection })
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2">
+      {/* Time remaining bar */}
+      {!protection.settled && (
+        <div className="mb-3">
+          <div className="flex items-center justify-between text-[12px] mb-1">
+            <span className="text-text3">Coverage period</span>
+            <span className="font-mono text-text2">
+              {daysRemaining > 1 ? `${daysRemaining.toFixed(1)}d left` : daysRemaining > 0 ? `${Math.round(daysRemaining * 24)}h left` : "Expired"}
+            </span>
+          </div>
+          <ProgressBar percent={coverageElapsedPct} color={daysRemaining < 3 ? "amber" : "green"} />
+        </div>
+      )}
+
+      {/* Key metrics */}
+      <div className="grid grid-cols-2 gap-2 mb-3">
         <div className="rounded-xl bg-input p-2.5">
           <div className="text-[12px] text-text3 mb-0.5">Premium remaining</div>
           <div className="font-mono text-sm font-semibold text-text1">
-            ${premiumUSD.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            ${premiumBalUSD.toLocaleString(undefined, { maximumFractionDigits: 4 })}
+          </div>
+          <div className="text-[11px] text-text3">
+            of ${premiumDepositUSD.toLocaleString(undefined, { maximumFractionDigits: 4 })} deposited
           </div>
         </div>
         <div className="rounded-xl bg-input p-2.5">
           <div className="text-[12px] text-text3 mb-0.5">Max payout</div>
-          <div className="font-mono text-sm font-semibold text-text1">
-            ${maxPayoutUSD.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+          <div className="font-mono text-sm font-semibold text-green">
+            ${maxPayoutUSD.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+          </div>
+          <div className="text-[11px] text-text3">
+            {roiPct > 0 ? `${roiPct.toFixed(0)}x return on premium` : "—"}
           </div>
         </div>
       </div>
+
+      {/* Premium streaming bar */}
+      {!protection.settled && premiumDepositUSD > 0 && (
+        <div className="mb-3">
+          <div className="flex items-center justify-between text-[12px] mb-1">
+            <span className="text-text3">Premium streaming</span>
+            <span className="font-mono text-text3">${ratePerBlockUSD > 0 ? ratePerBlockUSD.toFixed(6) : "0"}/day</span>
+          </div>
+          <ProgressBar percent={Math.max(0, Math.min(100, premiumPctRemaining))} color={premiumPctRemaining < 20 ? "amber" : "pink"} />
+        </div>
+      )}
+
+      {/* Position details */}
+      <div className="space-y-1 text-[12px] px-0.5">
+        <div className="flex justify-between">
+          <span className="text-text3">Tick range</span>
+          <span className="font-mono text-text2">{protection.tickLower} → {protection.tickUpper}</span>
+        </div>
+        <div className="flex justify-between">
+          <span className="text-text3">Coverage blocks</span>
+          <span className="font-mono text-text2">{protection.coverageStartBlock} → {protection.coverageEndBlock}</span>
+        </div>
+        {premiumStreamedUSD > 0 && (
+          <div className="flex justify-between">
+            <span className="text-text3">Streamed so far</span>
+            <span className="font-mono text-text2">${premiumStreamedUSD.toFixed(4)}</span>
+          </div>
+        )}
+      </div>
+
+      {protection.settled && (
+        <div className="mt-2 text-center text-[12px] text-text3">Settled</div>
+      )}
     </div>
   );
 }

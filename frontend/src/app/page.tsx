@@ -1,662 +1,282 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
-import { useAccount, useChainId, useBlockNumber, useReadContract } from "wagmi";
-import { useSearchParams } from "next/navigation";
-import { parseUnits } from "viem";
-import { BackgroundOrbs } from "@/components/BackgroundOrbs";
-import { NavBar } from "@/components/NavBar";
-import { ShieldDivider } from "@/components/ShieldDivider";
-import { TokenPairSelector } from "@/components/TokenPairSelector";
-import { CoverageTierPills } from "@/components/CoverageTierPills";
-import { DurationPills } from "@/components/DurationPills";
-import { PremiumInput } from "@/components/PremiumInput";
-import { PLCards } from "@/components/PLCards";
-import { ProgressBar } from "@/components/ProgressBar";
-import { StatusBadge } from "@/components/StatusBadge";
-import { SummaryRow } from "@/components/SummaryRow";
-import { ScrollIndicator } from "@/components/ScrollIndicator";
-import { HowItWorks } from "@/components/HowItWorks";
-import {
-  useUSDCBalance,
-  useUSDCAllowance,
-  useApproveUSDC,
-  useRegister,
-  useSettle,
-  useCancelProtection,
-  useVaultTotalAssets,
-} from "@/hooks/useILShield";
-import { DURATION_BLOCKS } from "@/lib/contracts";
-import { useChainAddresses } from "@/hooks/useILShield";
-import { usePositionAnalytics } from "@/hooks/usePositionAnalytics";
-import { useUserPositions } from "@/hooks/useUserPositions";
-import { ViewToggle, type ViewMode } from "@/components/analytics/ViewToggle";
-import { SimpleAnalytics } from "@/components/analytics/SimpleAnalytics";
-import { TechnicalAnalytics } from "@/components/analytics/TechnicalAnalytics";
-import { PositionSelector } from "@/components/PositionSelector";
-import { DexSelector } from "@/components/DexSelector";
-import { DexLogo } from "@/components/DexLogo";
-import { SupportedDexRow } from "@/components/SupportedDexRow";
-import { getDeployedDexesForChain, type DexConfig } from "@/config/dex-registry";
-import { usePremiumQuote } from "@/hooks/usePremiumQuote";
-import { PremiumCostBreakdown } from "@/components/PremiumCostBreakdown";
-import { TxProgressOverlay } from "@/components/TxProgressOverlay";
-import { useActiveProtections } from "@/hooks/useActiveProtections";
-import { ProtectionsList } from "@/components/ProtectionCard";
+import { motion } from "framer-motion";
+import Link from "next/link";
 
-type Screen = "protect" | "active" | "settlement";
+const fadeUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } },
+};
 
-export default function Home() {
+function Section({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <Suspense>
-      <HomeInner />
-    </Suspense>
+    <motion.section
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, margin: "-80px" }}
+      variants={fadeUp}
+      className={`w-full max-w-[1100px] mx-auto px-5 ${className}`}
+    >
+      {children}
+    </motion.section>
   );
 }
 
-function HomeInner() {
-  const { address, isConnected } = useAccount();
-  const chainId = useChainId();
-  const addrs = useChainAddresses();
-  const searchParams = useSearchParams();
-  const positionIdParam = searchParams.get("positionId");
-
-  // DEX selection (must come before position discovery)
-  const availableDexes = useMemo(() => getDeployedDexesForChain(chainId), [chainId]);
-  const [selectedDex, setSelectedDex] = useState<DexConfig | null>(null);
-  useEffect(() => {
-    if (availableDexes.length > 0 && !selectedDex) {
-      setSelectedDex(availableDexes[0]);
-    }
-  }, [availableDexes, selectedDex]);
-
-  // User positions from on-chain — based on selected DEX
-  const { positions: userPositions, isLoading: positionsLoading } = useUserPositions(selectedDex, chainId);
-  const [selectedPositionId, setSelectedPositionId] = useState<bigint | null>(null);
-
-  // Auto-select from URL param or first position
-  useEffect(() => {
-    if (positionIdParam) {
-      setSelectedPositionId(BigInt(positionIdParam));
-    } else if (userPositions.length > 0 && selectedPositionId === null) {
-      setSelectedPositionId(userPositions[0].tokenId);
-    }
-  }, [positionIdParam, userPositions, selectedPositionId]);
-
-  // Reset position selection when DEX changes
-  useEffect(() => {
-    setSelectedPositionId(null);
-  }, [selectedDex?.id]);
-
-  const selectedPosition = userPositions.find((p) => p.tokenId === selectedPositionId) ?? null;
-  const positionId = selectedPositionId ?? BigInt(1);
-
-  const usdcBalance = useUSDCBalance();
-  const usdcAllowance = useUSDCAllowance();
-  const seniorAssets = useVaultTotalAssets("senior");
-  const juniorAssets = useVaultTotalAssets("junior");
-
-  // Contract write hooks
-  const {
-    approve: approveUSDC,
-    isPending: isApproving,
-    isConfirming: isApproveConfirming,
-    isSuccess: isApproveSuccess,
-  } = useApproveUSDC();
-  const {
-    register,
-    isPending: isRegistering,
-    isConfirming: isRegisterConfirming,
-    isSuccess: isRegisterSuccess,
-    error: registerError,
-  } = useRegister();
-  const {
-    settle,
-    isPending: isSettling,
-    isConfirming: isSettleConfirming,
-    isSuccess: isSettleSuccess,
-  } = useSettle();
-
-  // Screen state
-  const [screen, setScreen] = useState<Screen>("protect");
-  const [selectedTier, setSelectedTier] = useState(2);
-  const [selectedDuration, setSelectedDuration] = useState("30d");
-  const [premiumAmount, setPremiumAmount] = useState("");
-  const [ilpnId, setIlpnId] = useState<bigint>(BigInt(0));
-  const [txStep, setTxStep] = useState<"idle" | "approve" | "register">("idle");
-
-  // Analytics view mode (persisted in localStorage)
-  const [viewMode, setViewMode] = useState<ViewMode>(() => {
-    if (typeof window !== "undefined") {
-      return (localStorage.getItem("ilshield-view-mode") as ViewMode) || "simple";
-    }
-    return "simple";
-  });
-  const handleViewModeChange = useCallback((mode: ViewMode) => {
-    setViewMode(mode);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("ilshield-view-mode", mode);
-    }
-  }, []);
-
-  // Position analytics — driven by selected position, no static data
-  const analytics = usePositionAnalytics(selectedPosition, parseFloat(premiumAmount) || undefined);
-
-  // Premium quotes — read rates from PricingOracle for all 3 tiers
-  // poolId = bytes32(uint256(1)) for legacy, or derived from adapter pool address
-  // For now use the legacy poolId format since that's what's configured on the oracle
-  const premiumPoolId = selectedPosition
-    ? ("0x0000000000000000000000000000000000000000000000000000000000000001" as `0x${string}`)
-    : null;
-  const premiumQuotes = usePremiumQuote(
-    premiumPoolId,
-    selectedPosition?.tickLower ?? 0,
-    selectedPosition?.tickUpper ?? 0,
-    selectedTier,
-    selectedDuration,
-  );
-
-  // Active protections — always visible when wallet connected
-  const { active: activeProtections, settled: settledProtections, isLoading: protectionsLoading } = useActiveProtections();
-
-  // Active screen: the ILPN ID of the just-registered position
-  const [activeIlpnId, setActiveIlpnId] = useState<number | null>(null);
-
-  // Read the active protection's on-chain data
-  const activeProtection = activeProtections.find((p) => p.ilpnId === activeIlpnId) ?? activeProtections[0] ?? null;
-
-  // Compute derived values
-  const coveragePct = selectedTier === 0 ? 50 : selectedTier === 1 ? 75 : 100;
-  const durationLabel = selectedDuration;
-  const durationBlocks = DURATION_BLOCKS[selectedDuration] || DURATION_BLOCKS["30d"];
-
-  // Check if approval is needed
-  const needsApproval =
-    premiumAmount &&
-    usdcAllowance.raw !== undefined &&
-    parseUnits(premiumAmount || "0", 6) > usdcAllowance.raw;
-
-  // Resolve adapter address from selected DEX + chain
-  const adapterAddress = (selectedDex?.adapters[chainId] || "0x0000000000000000000000000000000000000000") as `0x${string}`;
-
-  // Handle approve → register flow
-  useEffect(() => {
-    if (isApproveSuccess && txStep === "approve") {
-      usdcAllowance.refetch();
-      setTxStep("register");
-      register({
-        adapter: adapterAddress,
-        positionId,
-        coverageTier: selectedTier,
-        duration: selectedDuration,
-        premiumAmount,
-      });
-    }
-  }, [isApproveSuccess, txStep]);
-
-  useEffect(() => {
-    if (isRegisterSuccess) {
-      setTxStep("idle");
-      setScreen("active");
-      usdcBalance.refetch();
-      // The newest protection will appear in activeProtections after refetch
-      setActiveIlpnId(null); // will auto-pick the latest
-    }
-  }, [isRegisterSuccess]);
-
-  useEffect(() => {
-    if (isSettleSuccess) {
-      setScreen("settlement");
-    }
-  }, [isSettleSuccess]);
-
-  // Read current block number for warming/coverage calculations
-  const { data: blockNumberData } = useReadContract({
-    address: addrs.ILShieldCore,
-    abi: [{ name: "warmingPeriodBlocks", type: "function", stateMutability: "view", inputs: [], outputs: [{ type: "uint256" }] }] as const,
-    functionName: "warmingPeriodBlocks",
-    query: { refetchInterval: 12_000 },
-  });
-
-  const handleProtect = useCallback(() => {
-    if (!isConnected || !premiumAmount) return;
-
-    if (needsApproval) {
-      setTxStep("approve");
-      approveUSDC(premiumAmount);
-    } else {
-      setTxStep("register");
-      register({
-        adapter: adapterAddress,
-        positionId,
-        coverageTier: selectedTier,
-        duration: selectedDuration,
-        premiumAmount,
-      });
-    }
-  }, [isConnected, premiumAmount, needsApproval, selectedTier, selectedDuration, adapterAddress]);
-
-  const handleSettle = useCallback(() => {
-    // Use a dummy exit price for testnet (sqrt(3000) * 2^96)
-    const exitSqrtPrice = BigInt("4339505179874779489431521458380032");
-    settle(ilpnId, exitSqrtPrice);
-  }, [ilpnId, settle]);
-
-  const handleDone = useCallback(() => {
-    setScreen("protect");
-    setPremiumAmount("");
-    setSelectedTier(2);
-    setSelectedDuration("30d");
-    setTxStep("idle");
-  }, []);
-
-  const isTxPending = isApproving || isApproveConfirming || isRegistering || isRegisterConfirming;
-
-  // Derive active screen values from real on-chain data
-  const { data: currentBlockData } = useBlockNumber({ watch: true });
-  const currentBlock = currentBlockData ? Number(currentBlockData) : 0;
-
-  const activePremiumBalance = activeProtection ? Number(activeProtection.premiumBalance) / 1e6 : 0;
-  const activePremiumDeposit = parseFloat(premiumAmount) || activePremiumBalance || 100;
-  const premBalPercent = activePremiumDeposit > 0 ? (activePremiumBalance / activePremiumDeposit) * 100 : 0;
-
-  // Warming: compare current block vs coverageStartBlock
-  const warmingPeriod = Number(blockNumberData || 10);
-  const coverageStart = activeProtection ? activeProtection.coverageStartBlock : 0;
-  const coverageEnd = activeProtection ? activeProtection.coverageEndBlock : 0;
-  const warmingPercent = coverageStart > 0 && currentBlock > 0
-    ? Math.min(100, Math.max(0, Math.round(((currentBlock - (coverageStart - warmingPeriod)) / warmingPeriod) * 100)))
-    : 0;
-
-  // Days remaining from premium rate
-  const premRatePerBlock = activeProtection ? Number(activeProtection.premiumRatePerBlock) : 0;
-  const premRatePerBlockUSDC = premRatePerBlock / 1e12; // 18-dec → 6-dec
-  const blocksPerDay = 7200;
-  const daysRemaining = premRatePerBlockUSDC > 0
-    ? Math.round((activePremiumBalance * 1e6) / (premRatePerBlockUSDC * blocksPerDay))
-    : (coverageEnd > 0 && currentBlock > 0 ? Math.round((coverageEnd - currentBlock) / blocksPerDay) : 0);
-
-  // Duration label from real coverage window
-  const coverageDurationBlocks = coverageEnd - coverageStart;
-  const coverageDurationDays = coverageDurationBlocks > 0 ? Math.round(coverageDurationBlocks / blocksPerDay) : 0;
-
-  const ctaText = () => {
-    if (!isConnected) return "Connect wallet";
-    if (!premiumAmount) return "Enter amount";
-    if (txStep === "approve" || isApproving || isApproveConfirming) return "Step 1: Approving USDC...";
-    if (txStep === "register" || isRegistering || isRegisterConfirming) return "Step 2: Activating protection...";
-    if (needsApproval) return "Approve & Protect";
-    return "Protect position";
-  };
-
+function StatCard({ value, label }: { value: string; label: string }) {
   return (
-    <div className="relative min-h-screen">
-      <BackgroundOrbs />
+    <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-6 text-center">
+      <div className="font-mono text-3xl font-bold text-white mb-1">{value}</div>
+      <div className="text-sm text-[#8b8fa3]">{label}</div>
+    </div>
+  );
+}
 
-      {/* Transaction progress overlay */}
-      {(isTxPending || isSettling || isSettleConfirming) && (
-        <TxProgressOverlay
-          step={
-            isSettling || isSettleConfirming ? "settle"
-            : txStep === "approve" || isApproving || isApproveConfirming ? "approve"
-            : "register"
-          }
-          message={
-            isApproveConfirming || isRegisterConfirming || isSettleConfirming
-              ? "Transaction submitted — waiting for confirmation..."
-              : "Please confirm in your wallet"
-          }
-        />
-      )}
+export default function LandingPage() {
+  return (
+    <div className="min-h-screen bg-[#0a0e1a] text-white">
+      {/* Nav */}
+      <nav className="sticky top-0 z-50 border-b border-white/5 bg-[#0a0e1a]/80 backdrop-blur-lg">
+        <div className="mx-auto flex max-w-[1100px] items-center justify-between px-5 py-4">
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#3b82f6]">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+            </div>
+            <span className="text-[17px] font-semibold">IL Shield</span>
+          </div>
+          <div className="flex items-center gap-6 text-sm text-[#8b8fa3]">
+            <Link href="/about" className="hover:text-white transition-colors">About</Link>
+            <Link href="/research" className="hover:text-white transition-colors">Research</Link>
+            <Link href="/protect" className="rounded-full bg-[#3b82f6] px-4 py-2 text-white font-medium hover:bg-[#2563eb] transition-colors">
+              Launch App
+            </Link>
+          </div>
+        </div>
+      </nav>
 
-      <div className="relative z-10 flex min-h-screen flex-col">
-        <NavBar />
-        <main className="flex flex-1 flex-col items-center px-4 pt-10">
-          {/* ── PROTECT SCREEN ── */}
-          {screen === "protect" && (
-            <>
-              <h1 className="mb-7 text-center text-4xl font-medium tracking-tight text-text1 md:text-[52px] md:leading-[1.1]">
-                Protect anytime, anywhere.
-              </h1>
+      {/* Hero */}
+      <Section className="pt-24 pb-20 text-center">
+        <motion.div variants={fadeUp}>
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#3b82f6]/30 bg-[#3b82f6]/10 px-4 py-1.5 text-sm text-[#3b82f6] mb-6">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            Live on Ethereum Sepolia
+          </div>
+          <h1 className="text-5xl md:text-7xl font-bold tracking-tight mb-6 leading-[1.1]">
+            Insurance for<br />
+            <span className="text-[#3b82f6]">Uniswap LPs</span>
+          </h1>
+          <p className="text-lg md:text-xl text-[#8b8fa3] max-w-[600px] mx-auto mb-10">
+            Pay a streaming premium. Get paid when impermanent loss exceeds your fee income. No tokens. No alchemy. Just math.
+          </p>
+          <div className="flex items-center justify-center gap-4 mb-12">
+            <Link href="/protect" className="rounded-full bg-[#3b82f6] px-6 py-3 text-base font-semibold text-white hover:bg-[#2563eb] transition-colors">
+              Try on Testnet
+            </Link>
+            <Link href="/research" className="rounded-full border border-white/10 px-6 py-3 text-base font-semibold text-[#8b8fa3] hover:text-white hover:border-white/20 transition-colors">
+              Read the Docs
+            </Link>
+          </div>
+          <div className="grid grid-cols-3 gap-4 max-w-[500px] mx-auto">
+            <div className="text-center">
+              <div className="font-mono text-2xl font-bold text-white">$1.5-3B</div>
+              <div className="text-[12px] text-[#8b8fa3]">Annual IL losses</div>
+            </div>
+            <div className="text-center">
+              <div className="font-mono text-2xl font-bold text-white">252</div>
+              <div className="text-[12px] text-[#8b8fa3]">Tests passing</div>
+            </div>
+            <div className="text-center">
+              <div className="font-mono text-2xl font-bold text-white">5</div>
+              <div className="text-[12px] text-[#8b8fa3]">DEXs supported</div>
+            </div>
+          </div>
+        </motion.div>
+      </Section>
 
-              {/* Two-column layout: Transaction (left) + Analytics (right) */}
-              <div className="w-full max-w-[1000px] flex flex-col lg:flex-row gap-4 lg:items-start">
+      {/* The Problem */}
+      <Section className="py-20">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold mb-3">The IL Tax</h2>
+          <p className="text-[#8b8fa3] max-w-[500px] mx-auto">LPs are losing billions. Concentrated liquidity makes it worse.</p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <StatCard value="$1.5-3B" label="Annual IL losses on Uniswap" />
+          <StatCard value="60%" label="of non-stablecoin LP positions end unprofitable" />
+          <StatCard value="5-8x" label="IL amplification from concentrated liquidity" />
+        </div>
+        <p className="text-sm text-[#8b8fa3] text-center max-w-[650px] mx-auto">
+          Impermanent loss is the largest unsolved risk in DeFi. Previous solutions either collapsed under their own tokenomics (Bancor) or require options expertise most LPs don&rsquo;t have (Panoptic). LPs deserve something simpler.
+        </p>
+      </Section>
 
-                {/* ── LEFT: Transaction Card ── */}
-                <div className="w-full lg:w-[440px] lg:shrink-0 rounded-3xl border border-card-border bg-card p-4">
-                  {/* DEX selector */}
-                  {availableDexes.length > 0 && selectedDex && (
-                    <div className="mb-3">
-                      <DexSelector
-                        available={availableDexes}
-                        selected={selectedDex}
-                        onSelect={setSelectedDex}
-                      />
-                    </div>
-                  )}
+      {/* How It Works */}
+      <Section className="py-20">
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">How It Works</h2>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+          {[
+            { step: "01", title: "Provide Liquidity", desc: "LP on any Uniswap v3/v4 pool as normal. Nothing changes about your position." },
+            { step: "02", title: "Activate Protection", desc: "Register your position with IL Shield. Select coverage tier. One transaction." },
+            { step: "03", title: "Stream Premium", desc: "Small USDC premium deducted per block. Scales with position size. Cancel anytime." },
+            { step: "04", title: "Get Protected", desc: "If IL exceeds fee income when you close, you get paid automatically from underwriting vaults." },
+          ].map((s) => (
+            <div key={s.step} className="rounded-2xl border border-white/5 bg-white/[0.02] p-6">
+              <div className="text-[#3b82f6] font-mono text-sm font-bold mb-3">{s.step}</div>
+              <div className="text-base font-semibold mb-2">{s.title}</div>
+              <div className="text-sm text-[#8b8fa3]">{s.desc}</div>
+            </div>
+          ))}
+        </div>
+      </Section>
 
-                  {/* Position selector */}
-                  <div className="rounded-2xl bg-input p-3" style={selectedDex ? { borderLeft: `3px solid ${selectedDex.color}20` } : undefined}>
-                    <div className="mb-1.5 flex items-center gap-2 text-[13px] text-text3">
-                      {selectedDex && <DexLogo dexId={selectedDex.id} size={14} />}
-                      <span>Position{selectedDex ? ` on ${selectedDex.name}` : ""}</span>
-                    </div>
-                    {isConnected && userPositions.length > 0 ? (
-                      <PositionSelector
-                        positions={userPositions}
-                        selected={selectedPositionId}
-                        onSelect={setSelectedPositionId}
-                        isLoading={positionsLoading}
-                      />
-                    ) : isConnected && !positionsLoading ? (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-text3">No Uniswap v4 positions found</span>
-                        <TokenPairSelector token0="ETH" token1="USDC" />
-                      </div>
-                    ) : !isConnected ? (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-text3">Connect wallet to select a position</span>
-                        <TokenPairSelector token0="ETH" token1="USDC" />
-                      </div>
-                    ) : (
-                      <div className="h-8 w-40 animate-pulse rounded bg-card" />
-                    )}
-                  </div>
+      {/* Why It Works */}
+      <Section className="py-20">
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">Insurance, Not Alchemy</h2>
+        <p className="text-[#8b8fa3] text-center mb-12 max-w-[500px] mx-auto">Why previous approaches failed and how IL Shield is different.</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/5 p-6">
+            <div className="text-red-400 text-sm font-bold mb-2">Bancor v3 &#x2717;</div>
+            <div className="text-base font-semibold mb-2">Token-backed claims</div>
+            <div className="text-sm text-[#8b8fa3]">Minted BNT tokens to pay claims. Token crashed when the market crashed. Couldn&rsquo;t pay when it mattered most. Protocol lost $200M+.</div>
+          </div>
+          <div className="rounded-2xl border border-amber-500/20 bg-amber-500/5 p-6">
+            <div className="text-amber-400 text-sm font-bold mb-2">Active Management &#x26A0;</div>
+            <div className="text-base font-semibold mb-2">Reduce but can&rsquo;t eliminate</div>
+            <div className="text-sm text-[#8b8fa3]">Gamma, Arrakis, Charm reduce IL 30-50% by rebalancing. Fails in trending markets. Doesn&rsquo;t protect the remaining 50-70%.</div>
+          </div>
+          <div className="rounded-2xl border border-[#3b82f6]/30 bg-[#3b82f6]/5 p-6">
+            <div className="text-[#3b82f6] text-sm font-bold mb-2">IL Shield &#x2713;</div>
+            <div className="text-base font-semibold mb-2">Stablecoin collateral</div>
+            <div className="text-sm text-[#8b8fa3]">USDC vault solvency is uncorrelated with the market crashes that trigger claims. Actuarial pricing. Tranched risk. Boring works.</div>
+          </div>
+        </div>
+      </Section>
 
-                  <ShieldDivider />
+      {/* Two Audiences */}
+      <Section className="py-20">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-8">
+            <div className="text-[#3b82f6] text-sm font-bold mb-4">For LPs</div>
+            <h3 className="text-2xl font-bold mb-4">Protect your positions</h3>
+            <ul className="space-y-3 text-sm text-[#8b8fa3] mb-6">
+              <li className="flex items-start gap-2"><span className="text-[#3b82f6] mt-0.5">&#x2713;</span> Streaming USDC premiums — pay per block</li>
+              <li className="flex items-start gap-2"><span className="text-[#3b82f6] mt-0.5">&#x2713;</span> Automatic settlement — USDC in your wallet</li>
+              <li className="flex items-start gap-2"><span className="text-[#3b82f6] mt-0.5">&#x2713;</span> Works with Uniswap v3, v4, PancakeSwap, SushiSwap</li>
+              <li className="flex items-start gap-2"><span className="text-[#3b82f6] mt-0.5">&#x2713;</span> Cancel anytime — unused premium refunded</li>
+            </ul>
+            <Link href="/protect" className="inline-block rounded-full bg-[#3b82f6] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#2563eb] transition-colors">
+              Protect a Position &rarr;
+            </Link>
+          </div>
+          <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-8">
+            <div className="text-[#f59e0b] text-sm font-bold mb-4">For Yield Seekers</div>
+            <h3 className="text-2xl font-bold mb-4">Earn yield by underwriting LP risk</h3>
+            <ul className="space-y-3 text-sm text-[#8b8fa3] mb-6">
+              <li className="flex items-start gap-2"><span className="text-[#f59e0b] mt-0.5">&#x2713;</span> Senior Vault: 8-12% APY (last-loss, ultra-safe)</li>
+              <li className="flex items-start gap-2"><span className="text-[#f59e0b] mt-0.5">&#x2713;</span> Junior Vault: 20-50% APY (first-loss, higher reward)</li>
+              <li className="flex items-start gap-2"><span className="text-[#f59e0b] mt-0.5">&#x2713;</span> Stablecoin deposits — no directional exposure</li>
+              <li className="flex items-start gap-2"><span className="text-[#f59e0b] mt-0.5">&#x2713;</span> Premium income streams to you per block</li>
+            </ul>
+            <Link href="/vaults" className="inline-block rounded-full border border-[#f59e0b]/30 px-5 py-2.5 text-sm font-semibold text-[#f59e0b] hover:bg-[#f59e0b]/10 transition-colors">
+              Deposit to Vault &rarr;
+            </Link>
+          </div>
+        </div>
+      </Section>
 
-                  {/* Coverage */}
-                  <div className="rounded-2xl bg-input p-3">
-                    <div className="mb-1.5 text-[13px] text-text3">Coverage</div>
-                    <div className="mb-3 text-[28px] text-green">{coveragePct}%</div>
-                    <div className="mb-2">
-                      <CoverageTierPills selected={selectedTier} onSelect={setSelectedTier} />
-                    </div>
-                    <DurationPills selected={selectedDuration} onSelect={setSelectedDuration} />
-                  </div>
-
-                  {/* Premium cost breakdown */}
-                  {selectedPosition && (
-                    <div className="mt-3">
-                      <PremiumCostBreakdown
-                        quotes={premiumQuotes}
-                        selectedTier={selectedTier}
-                        selectedDuration={selectedDuration}
-                      />
-                    </div>
-                  )}
-
-                  {/* Premium deposit */}
-                  <div className="mt-3">
-                    <PremiumInput
-                      value={premiumAmount}
-                      onChange={setPremiumAmount}
-                      balance={isConnected ? Number(usdcBalance.formatted).toLocaleString(undefined, { maximumFractionDigits: 2 }) : "—"}
-                    />
-                  </div>
-
-                  {/* Summary */}
-                  <div className="mt-3 space-y-0.5 px-1">
-                    <SummaryRow label="Coverage tier" value={`${coveragePct}%`} />
-                    <SummaryRow label="Duration" value={`${durationLabel} (${durationBlocks.toLocaleString()} blocks)`} mono />
-                    <SummaryRow label="Activation delay" value="10 blocks (~2 min)" />
-                    <SummaryRow
-                      label="Senior vault TVL"
-                      value={`$${Number(seniorAssets.formatted).toLocaleString()}`}
-                      mono
-                    />
-                    <SummaryRow
-                      label="Junior vault TVL"
-                      value={`$${Number(juniorAssets.formatted).toLocaleString()}`}
-                      mono
-                    />
-                  </div>
-
-                  {/* Error display */}
-                  {registerError && (
-                    <div className="mt-2 rounded-xl bg-red-dim p-2 text-xs text-red">
-                      {registerError.message?.slice(0, 120)}
-                    </div>
-                  )}
-
-                  {/* CTA */}
-                  <button
-                    onClick={isConnected ? handleProtect : undefined}
-                    disabled={!isConnected || !premiumAmount || isTxPending}
-                    className={`mt-4 w-full rounded-[20px] py-4 text-lg font-semibold transition-all ${
-                      !isConnected || !premiumAmount
-                        ? "cursor-default bg-input text-text3"
-                        : isTxPending
-                          ? "bg-pink-cta text-pink-cta-text opacity-70"
-                          : "bg-pink-cta text-pink-cta-text hover:brightness-110"
-                    }`}
-                  >
-                    {ctaText()}
-                  </button>
-                </div>
-
-                {/* ── RIGHT: Analytics Card ── */}
-                <div className="w-full lg:flex-1 rounded-3xl border border-card-border bg-card p-4">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-sm text-text1 font-medium">Position Analytics</span>
-                    {analytics && <ViewToggle mode={viewMode} onChange={handleViewModeChange} />}
-                  </div>
-                  {analytics ? (
-                    <div
-                      className="transition-all duration-200 ease-out"
-                      key={viewMode}
-                      style={{ animation: "fadeSlideIn 200ms ease" }}
-                    >
-                      {viewMode === "simple" ? (
-                        <SimpleAnalytics data={analytics} />
-                      ) : (
-                        <TechnicalAnalytics data={analytics} />
-                      )}
-                    </div>
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-12 text-center">
-                      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--text3)" strokeWidth="1.5" className="mb-3">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                      </svg>
-                      <div className="text-sm text-text2 mb-1">
-                        {!isConnected
-                          ? "Connect your wallet to see analytics"
-                          : userPositions.length === 0
-                            ? "No positions detected"
-                            : "Select a position to view analytics"}
-                      </div>
-                      <div className="text-[12px] text-text3">
-                        {!isConnected
-                          ? "Analytics are driven by your on-chain position data"
-                          : "Open a Uniswap v4 LP position, then select it here"}
-                      </div>
-                    </div>
-                  )}
-                </div>
+      {/* Architecture */}
+      <Section className="py-20">
+        <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">Architecture</h2>
+        <div className="rounded-2xl border border-white/5 bg-white/[0.02] p-8 font-mono text-sm text-[#8b8fa3] text-center mb-8 overflow-x-auto">
+          <pre className="inline-block text-left">{`┌─────────────────────────────────────────────────────────┐
+│                    ILShieldCore                          │
+│         Registration · Streaming · Settlement            │
+├──────────┬──────────┬──────────────┬───────────────┬─────┤
+│ Senior   │ Junior   │ ILPN         │ Pricing       │Hook │
+│ Vault    │ Vault    │ Registry     │ Oracle        │(v4) │
+│ ERC-4626 │ ERC-4626 │ ERC-721      │ Chainlink+    │     │
+│ Last-loss│ 1st-loss │ Soulbound    │ TWAP+Vol      │     │
+└──────────┴──────────┴──────────────┴───────────────┴─────┘
+           ↑                         ↑
+    Vault depositors            Chainlink feeds
+    earn premium yield          anchor settlement`}</pre>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          {[
+            { icon: "🧪", label: "252 tests passing", sub: "Unit, integration, adversarial, invariant, fork" },
+            { icon: "🔗", label: "Chainlink + TWAP oracles", sub: "3% divergence circuit breaker" },
+            { icon: "🏦", label: "ERC-4626 vaults", sub: "Standard yield-bearing vault interface" },
+            { icon: "🎫", label: "Soulbound ERC-721", sub: "Non-transferable protection NFTs" },
+            { icon: "⚡", label: "Uniswap v4 hook", sub: "Optional atomic in-pool protection" },
+            { icon: "🔌", label: "Multi-DEX adapters", sub: "Uni v3, PancakeSwap, SushiSwap, Aerodrome" },
+          ].map((f) => (
+            <div key={f.label} className="flex items-start gap-3 rounded-xl border border-white/5 bg-white/[0.01] p-4">
+              <span className="text-lg">{f.icon}</span>
+              <div>
+                <div className="text-sm font-medium text-white">{f.label}</div>
+                <div className="text-[12px] text-[#8b8fa3]">{f.sub}</div>
               </div>
+            </div>
+          ))}
+        </div>
+      </Section>
 
-              {/* ── Your Protections ── */}
-              {isConnected && (activeProtections.length > 0 || settledProtections.length > 0 || protectionsLoading) && (
-                <div className="w-full max-w-[1000px] mt-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--pink)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                    </svg>
-                    <span className="text-sm font-medium text-text1">
-                      Your Protections
-                      {activeProtections.length > 0 && (
-                        <span className="ml-1.5 text-[12px] text-pink">({activeProtections.length} active)</span>
-                      )}
-                    </span>
-                  </div>
-                  <ProtectionsList
-                    active={activeProtections}
-                    settled={settledProtections}
-                    isLoading={protectionsLoading}
-                  />
-                </div>
-              )}
+      {/* Backed By */}
+      <Section className="py-20">
+        <h2 className="text-2xl font-bold text-center mb-8">Built With</h2>
+        <div className="flex items-center justify-center gap-10 flex-wrap text-[#8b8fa3]">
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/5 text-xl">&#x26D3;</div>
+            <span className="text-[12px]">Chainlink Oracles</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/5 text-xl">&#x1F984;</div>
+            <span className="text-[12px]">Uniswap v3/v4</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/5 text-xl">&#x1F3D7;</div>
+            <span className="text-[12px]">OpenZeppelin</span>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white/5 text-xl">&#x1F525;</div>
+            <span className="text-[12px]">Foundry</span>
+          </div>
+        </div>
+      </Section>
 
-              <div className="mt-6">
-                <SupportedDexRow />
-              </div>
+      {/* CTA */}
+      <Section className="py-24 text-center">
+        <h2 className="text-3xl md:text-4xl font-bold mb-4">Protect your first position</h2>
+        <p className="text-[#8b8fa3] mb-8">Live on Ethereum Sepolia. No mainnet funds required.</p>
+        <div className="flex items-center justify-center gap-4 mb-6">
+          <Link href="/protect" className="rounded-full bg-[#3b82f6] px-6 py-3 text-base font-semibold text-white hover:bg-[#2563eb] transition-colors">
+            Launch App
+          </Link>
+          <Link href="https://github.com/robtg4/il-shield-protocol" target="_blank" className="rounded-full border border-white/10 px-6 py-3 text-base font-semibold text-[#8b8fa3] hover:text-white transition-colors">
+            GitHub
+          </Link>
+        </div>
+        <p className="text-[12px] text-[#8b8fa3]">No token. No airdrop. Just protection.</p>
+      </Section>
 
-              <ScrollIndicator />
-
-              {/* How it works section */}
-              <div className="mt-20 w-full flex justify-center">
-                <HowItWorks />
-              </div>
-            </>
-          )}
-
-          {/* ── ACTIVE PROTECTION SCREEN ── */}
-          {screen === "active" && (
-            <>
-              <h1 className="mb-7 text-center text-4xl font-medium tracking-tight text-text1 md:text-[52px] md:leading-[1.1]">
-                {warmingPercent >= 100 ? "Position protected." : "Warming up..."}
-              </h1>
-
-              <div className="w-full max-w-[480px] rounded-3xl border border-card-border bg-card p-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    {selectedPosition ? (
-                      <>
-                        <TokenPairSelector token0={selectedPosition.token0} token1={selectedPosition.token1} />
-                        <span className="text-[13px] text-text3">{selectedPosition.feePct}</span>
-                      </>
-                    ) : (
-                      <>
-                        <TokenPairSelector token0="ETH" token1="USDC" />
-                        <span className="text-[13px] text-text3">0.30%</span>
-                      </>
-                    )}
-                  </div>
-                  <StatusBadge
-                    status={warmingPercent >= 100 ? "active" : "warming"}
-                    warmingPercent={warmingPercent < 100 ? warmingPercent : undefined}
-                  />
-                </div>
-
-                {/* Coverage info from real position */}
-                <div className="mb-1 flex items-center justify-between text-[13px]">
-                  <span className="text-text3">
-                    {coveragePct}% coverage · {coverageDurationDays > 0 ? `${coverageDurationDays}d` : durationLabel}
-                  </span>
-                  <span className={warmingPercent >= 100 ? "text-green" : "text-amber"}>
-                    {warmingPercent >= 100 ? "Active" : `${warmingPercent}% warming`}
-                  </span>
-                </div>
-                <ProgressBar percent={warmingPercent} color={warmingPercent >= 100 ? "green" : "amber"} />
-
-                {/* Premium balance — real on-chain data */}
-                <div className="mt-3 rounded-2xl bg-input p-3">
-                  <div className="mb-1 flex items-center justify-between">
-                    <span className="text-[13px] text-text3">Premium balance</span>
-                    <span className="font-mono text-sm text-text1">
-                      ${activePremiumBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-                    </span>
-                  </div>
-                  <ProgressBar percent={Math.max(0, Math.min(100, premBalPercent))} color={premBalPercent < 20 ? "amber" : "pink"} />
-                  <div className="mt-2 flex items-center justify-between">
-                    <span className={`font-mono text-xs ${premBalPercent < 20 ? "text-amber" : "text-text3"}`}>
-                      streaming per-block
-                    </span>
-                    <span className={`text-xs ${premBalPercent < 20 ? "text-amber" : "text-text3"}`}>
-                      {daysRemaining > 0 ? `~${daysRemaining}d remaining` : coverageDurationDays > 0 ? `${coverageDurationDays}d coverage` : "—"}
-                    </span>
-                  </div>
-                </div>
-
-                {activeProtection && (
-                  <div className="mt-3 space-y-0.5 px-1 text-[12px]">
-                    <div className="flex justify-between">
-                      <span className="text-text3">ILPN ID</span>
-                      <span className="font-mono text-text2">#{activeProtection.ilpnId}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-text3">Coverage blocks</span>
-                      <span className="font-mono text-text2">{coverageStart} → {coverageEnd}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-text3">Max payout</span>
-                      <span className="font-mono text-text2">${(Number(activeProtection.maxPayout) / 1e6).toLocaleString()}</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Actions */}
-                <div className="mt-4 flex gap-2">
-                  <button
-                    onClick={handleDone}
-                    className="flex-1 rounded-[20px] bg-input py-3.5 text-base font-semibold text-text1 transition-colors hover:bg-input-hover"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    onClick={handleSettle}
-                    disabled={isSettling || isSettleConfirming}
-                    className={`flex-1 rounded-[20px] py-3.5 text-base font-semibold transition-colors ${
-                      isSettling || isSettleConfirming
-                        ? "bg-pink-cta text-pink-cta-text opacity-70"
-                        : "bg-pink-cta text-pink-cta-text hover:brightness-110"
-                    }`}
-                  >
-                    {isSettling || isSettleConfirming ? "Settling..." : "Settle claim"}
-                  </button>
-                </div>
-              </div>
-
-              <p className="mt-4 max-w-[480px] text-center text-sm text-text2">
-                Settles automatically when you close your Uniswap position.
-              </p>
-            </>
-          )}
-
-          {/* ── SETTLEMENT SCREEN ── */}
-          {screen === "settlement" && (
-            <>
-              <h1 className="mb-7 text-center text-4xl font-medium tracking-tight text-text1 md:text-[52px] md:leading-[1.1]">
-                Claim settled.
-              </h1>
-
-              <div className="w-full max-w-[480px] rounded-3xl border border-card-border bg-card p-4">
-                <div className="flex flex-col items-center py-6">
-                  <div className="mb-3.5 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-green-dim">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                      <path d="m9 12 2 2 4-4" />
-                    </svg>
-                  </div>
-                  <div className="font-mono text-[40px] font-medium text-green">$0.00</div>
-                  <div className="mt-1 text-sm text-text2">
-                    Protection settled — position closed
-                  </div>
-                </div>
-
-                <div className="rounded-2xl bg-input p-3">
-                  <SummaryRow label="Position" value="ETH/USDC" />
-                  <SummaryRow label="Coverage" value={`${coveragePct}%`} />
-                  <SummaryRow label="Duration" value={durationLabel} />
-                  <SummaryRow label="Network" value={chainId === 1301 ? "Unichain Sepolia" : "Ethereum Sepolia"} />
-                </div>
-
-                <button
-                  onClick={handleDone}
-                  className="mt-4 w-full rounded-[20px] bg-pink-cta py-4 text-lg font-semibold text-pink-cta-text transition-colors hover:brightness-110"
-                >
-                  Done
-                </button>
-              </div>
-
-              <p className="mt-4 text-center text-sm text-text2">
-                View transaction on{" "}
-                <span className="cursor-pointer text-pink">{addrs.explorerName}</span>
-              </p>
-            </>
-          )}
-        </main>
-      </div>
+      {/* Footer */}
+      <footer className="border-t border-white/5 py-8">
+        <div className="mx-auto max-w-[1100px] px-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-2 text-sm text-[#8b8fa3]">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            IL Shield Protocol
+          </div>
+          <div className="flex items-center gap-6 text-sm text-[#8b8fa3]">
+            <Link href="/about" className="hover:text-white transition-colors">About</Link>
+            <Link href="/research" className="hover:text-white transition-colors">Research</Link>
+            <Link href="https://github.com/robtg4/il-shield-protocol" target="_blank" className="hover:text-white transition-colors">GitHub</Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

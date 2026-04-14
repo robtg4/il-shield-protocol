@@ -2,21 +2,35 @@
 
 import { useBlockNumber } from "wagmi";
 import type { ActiveProtection } from "@/hooks/useActiveProtections";
+import { useChainlinkPrice } from "@/hooks/useChainlinkPrice";
+import { computeILExact, computePayout, tokenAmountToUSD, tickToSqrtPriceX96 } from "@/lib/ilmath";
 import { ProgressBar } from "./ProgressBar";
 
 const TIER_LABELS = ["50%", "75%", "100%"];
 const BLOCKS_PER_DAY = 7200;
 
+/**
+ * Derive a sqrtPriceX96 from Chainlink ETH/USD price.
+ * For a USDC/WETH pool (token0=USDC, token1=WETH): price = ethPriceUSD
+ * sqrtPriceX96 = sqrt(price) * 2^96
+ */
+function ethPriceToSqrtPriceX96(ethPriceUSD: number): bigint {
+  if (ethPriceUSD <= 0) return BigInt(0);
+  const sqrtPrice = Math.sqrt(ethPriceUSD);
+  const Q96 = Number(BigInt(2) ** BigInt(96));
+  return BigInt(Math.round(sqrtPrice * Q96));
+}
+
 export function ProtectionCard({ protection }: { protection: ActiveProtection }) {
   const { data: blockNum } = useBlockNumber({ watch: true });
   const currentBlock = blockNum ? Number(blockNum) : 0;
+  const chainlink = useChainlinkPrice();
 
   const tierLabel = TIER_LABELS[protection.coverageTier] || "?";
   const premiumBalUSD = Number(protection.premiumBalance) / 1e6;
   const premiumDepositUSD = Number(protection.premiumDeposit) / 1e6;
   const maxPayoutUSD = Number(protection.maxPayout) / 1e6;
   const isActive = !protection.settled && protection.premiumBalance > BigInt(0);
-  const isDepleted = !protection.settled && protection.premiumBalance === BigInt(0);
 
   // Time calculations
   const coverageDurationBlocks = protection.coverageEndBlock - protection.coverageStartBlock;
@@ -28,15 +42,64 @@ export function ProtectionCard({ protection }: { protection: ActiveProtection })
     : 0;
 
   // Premium streaming
-  const ratePerBlockUSD = Number(protection.premiumRatePerBlock) * BLOCKS_PER_DAY / 1e12 / 1e6;
+  const ratePerDayUSD = Number(protection.premiumRatePerBlock) * BLOCKS_PER_DAY / 1e12 / 1e6;
   const premiumStreamedUSD = premiumDepositUSD - premiumBalUSD;
   const premiumPctRemaining = premiumDepositUSD > 0 ? (premiumBalUSD / premiumDepositUSD) * 100 : 0;
 
-  // ROI: if settled with max payout, net = maxPayout - premiumDeposit
-  // Current "potential" ROI based on max coverage
-  const potentialPayoutUSD = maxPayoutUSD;
-  const netROI = potentialPayoutUSD - premiumDepositUSD;
-  const roiPct = premiumDepositUSD > 0 ? (netROI / premiumDepositUSD) * 100 : 0;
+  // ── Current IL + payout computation ──
+  // Use Chainlink price to derive current sqrtPriceX96, then compute IL
+  const currentSqrtPriceX96 = chainlink.price > 0
+    ? ethPriceToSqrtPriceX96(chainlink.price)
+    : BigInt(0);
+
+  const hasEntryPrice = protection.entrySqrtPriceX96 > BigInt(0);
+  const hasLiquidity = protection.liquidity > BigInt(0);
+  const canComputeIL = hasEntryPrice && hasLiquidity && currentSqrtPriceX96 > BigInt(0);
+
+  let currentILRaw = BigInt(0);
+  let currentPayoutRaw = BigInt(0);
+  let currentILUSD = 0;
+  let currentPayoutUSD = 0;
+
+  if (canComputeIL) {
+    currentILRaw = computeILExact(
+      protection.entrySqrtPriceX96,
+      currentSqrtPriceX96,
+      protection.tickLower,
+      protection.tickUpper,
+      protection.liquidity,
+    );
+    currentPayoutRaw = computePayout(
+      currentILRaw,
+      protection.coverageTier as 0 | 1 | 2,
+      200, // 2% settlement fee
+    );
+
+    // Cap at maxPayout
+    if (currentPayoutRaw > protection.maxPayout) {
+      currentPayoutRaw = protection.maxPayout;
+    }
+
+    // Convert to USD — token1 is WETH (18 dec) for USDC/WETH pool
+    // IL is in token1 terms. For USDC/WETH: token1 = WETH, so multiply by ETH price
+    // For WETH/USDC (token0=WETH): token1 = USDC (6 dec, $1)
+    // Detect from entry price magnitude — if entry sqrtPrice is very large, token0 is USDC
+    const entryPrice = Number(protection.entrySqrtPriceX96);
+    const isToken1WETH = entryPrice > 1e30; // USDC/WETH pools have very large sqrtPriceX96
+
+    if (isToken1WETH) {
+      // IL is in WETH terms (18 dec)
+      currentILUSD = tokenAmountToUSD(currentILRaw, 18, chainlink.price);
+      currentPayoutUSD = tokenAmountToUSD(currentPayoutRaw, 18, chainlink.price);
+    } else {
+      // IL is in USDC terms (6 dec)
+      currentILUSD = tokenAmountToUSD(currentILRaw, 6, 1);
+      currentPayoutUSD = tokenAmountToUSD(currentPayoutRaw, 6, 1);
+    }
+  }
+
+  // Net ROI if settled now
+  const netIfSettledNow = currentPayoutUSD - premiumStreamedUSD;
 
   return (
     <div className={`rounded-2xl border p-4 ${
@@ -77,6 +140,36 @@ export function ProtectionCard({ protection }: { protection: ActiveProtection })
         </div>
       </div>
 
+      {/* ── Current IL + Payout (the hero section) ── */}
+      {!protection.settled && canComputeIL && (
+        <div className="rounded-xl bg-input p-3 mb-3">
+          <div className="text-[12px] text-text3 mb-2">If you settled now</div>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="text-center">
+              <div className="text-[11px] text-text3">Current IL</div>
+              <div className={`font-mono text-sm font-semibold ${currentILUSD > 0 ? "text-red" : "text-text2"}`}>
+                {currentILUSD > 0.001 ? `-$${currentILUSD.toFixed(4)}` : "$0"}
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-[11px] text-text3">Payout</div>
+              <div className={`font-mono text-sm font-semibold ${currentPayoutUSD > 0 ? "text-green" : "text-text2"}`}>
+                {currentPayoutUSD > 0.001 ? `+$${currentPayoutUSD.toFixed(4)}` : "$0"}
+              </div>
+            </div>
+            <div className="text-center">
+              <div className="text-[11px] text-text3">Net P&L</div>
+              <div className={`font-mono text-sm font-semibold ${netIfSettledNow >= 0 ? "text-green" : "text-red"}`}>
+                {netIfSettledNow >= 0 ? `+$${netIfSettledNow.toFixed(4)}` : `-$${Math.abs(netIfSettledNow).toFixed(4)}`}
+              </div>
+            </div>
+          </div>
+          <div className="text-[11px] text-text3 text-center mt-1.5">
+            ETH ${chainlink.price.toLocaleString()} (Chainlink) · premium streamed: ${premiumStreamedUSD.toFixed(4)}
+          </div>
+        </div>
+      )}
+
       {/* Time remaining bar */}
       {!protection.settled && (
         <div className="mb-3">
@@ -106,9 +199,7 @@ export function ProtectionCard({ protection }: { protection: ActiveProtection })
           <div className="font-mono text-sm font-semibold text-green">
             ${maxPayoutUSD.toLocaleString(undefined, { maximumFractionDigits: 2 })}
           </div>
-          <div className="text-[11px] text-text3">
-            {roiPct > 0 ? `${roiPct.toFixed(0)}x return on premium` : "—"}
-          </div>
+          <div className="text-[11px] text-text3">10x premium cap</div>
         </div>
       </div>
 
@@ -117,7 +208,7 @@ export function ProtectionCard({ protection }: { protection: ActiveProtection })
         <div className="mb-3">
           <div className="flex items-center justify-between text-[12px] mb-1">
             <span className="text-text3">Premium streaming</span>
-            <span className="font-mono text-text3">${ratePerBlockUSD > 0 ? ratePerBlockUSD.toFixed(6) : "0"}/day</span>
+            <span className="font-mono text-text3">${ratePerDayUSD > 0 ? ratePerDayUSD.toFixed(6) : "0"}/day</span>
           </div>
           <ProgressBar percent={Math.max(0, Math.min(100, premiumPctRemaining))} color={premiumPctRemaining < 20 ? "amber" : "pink"} />
         </div>
@@ -133,12 +224,6 @@ export function ProtectionCard({ protection }: { protection: ActiveProtection })
           <span className="text-text3">Coverage blocks</span>
           <span className="font-mono text-text2">{protection.coverageStartBlock} → {protection.coverageEndBlock}</span>
         </div>
-        {premiumStreamedUSD > 0 && (
-          <div className="flex justify-between">
-            <span className="text-text3">Streamed so far</span>
-            <span className="font-mono text-text2">${premiumStreamedUSD.toFixed(4)}</span>
-          </div>
-        )}
       </div>
 
       {protection.settled && (

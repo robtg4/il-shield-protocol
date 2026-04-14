@@ -200,10 +200,10 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
             coverageTier: coverageTier,
             coverageStartBlock: startBlock,
             coverageEndBlock: startBlock + durationBlocks,
-            premiumBalance: premiumDeposit,
+            premiumBalance: premiumDeposit * 1e12,      // Store in 18-dec WAD
             premiumRatePerBlock: premiumRate,
             lastPremiumBlock: uint256(block.number),
-            maxPayout: premiumDeposit * 10,
+            maxPayout: premiumDeposit * 1e12 * 10,       // 18-dec WAD, 10x leverage
             settled: false,
             owner: msg.sender,
             referrer: referrer
@@ -252,10 +252,10 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
             coverageTier: coverageTier,
             coverageStartBlock: startBlock,
             coverageEndBlock: startBlock + durationBlocks,
-            premiumBalance: premiumDeposit,
+            premiumBalance: premiumDeposit * 1e12,      // 18-dec WAD
             premiumRatePerBlock: premiumRate,
             lastPremiumBlock: uint256(block.number),
-            maxPayout: premiumDeposit * 10,
+            maxPayout: premiumDeposit * 1e12 * 10,       // 18-dec WAD
             settled: false,
             owner: msg.sender,
             referrer: referrer
@@ -312,8 +312,8 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
             pos.liquidity
         );
 
-        // Compute payout
-        uint256 payout = _computePayout(ilpnId, ilAmount);
+        // Compute payout (converts IL from token1 to USDC using exit price)
+        uint256 payout = _computePayout(ilpnId, ilAmount, settlementSqrtPriceX96);
 
         if (payout > 0) {
             _executePayout(payout);
@@ -338,7 +338,7 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
         if (pos.settled) revert PositionAlreadySettled();
 
         usdc.safeTransferFrom(msg.sender, address(this), amount);
-        pos.premiumBalance += amount;
+        pos.premiumBalance += amount * 1e12; // Scale to 18-dec WAD
 
         emit PremiumTopUp(ilpnId, amount);
     }
@@ -352,7 +352,8 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
         // Deduct accrued premiums
         _deductPremium(ilpnId);
 
-        uint256 refund = pos.premiumBalance;
+        uint256 refundWad = pos.premiumBalance;
+        uint256 refund = refundWad / 1e12; // Convert WAD to 6-dec USDC for transfer
         pos.premiumBalance = 0;
         pos.settled = true;
 
@@ -375,10 +376,10 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
 
     // ─── Internal: Settlement ────────────────────────────────────────────
 
-    function _computePayout(uint256 ilpnId, uint256 ilAmount) internal view returns (uint256 payout) {
+    function _computePayout(uint256 ilpnId, uint256 ilAmount, uint160 exitSqrtPriceX96) internal view returns (uint256 payout) {
         Position storage pos = positions[ilpnId];
 
-        // Apply coverage tier
+        // Apply coverage tier (ilAmount is in token1 terms, 18-dec-ish)
         uint256 coveredIL = ilAmount * PremiumMath.coverageMultiplierBps(pos.coverageTier) / BPS;
 
         // Apply warming period ramp
@@ -390,12 +391,30 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
             : (elapsedBlocks * BPS) / fullCoverageRampBlocks;
         coveredIL = coveredIL * effectiveCoverage / BPS;
 
-        // Cap at maxPayout
-        payout = coveredIL > pos.maxPayout ? pos.maxPayout : coveredIL;
+        // Convert coveredIL from token1 terms to token0 (USDC) terms using exit price
+        // token0_amount = token1_amount / price = token1_amount * Q96^2 / sqrtPrice^2
+        // This gives us USDC-wei (6 dec) which is directly comparable to maxPayout
+        uint256 Q96 = 2 ** 96;
+        uint256 coveredILInUSDC = coveredIL > 0
+            ? FullMath.mulDiv(
+                FullMath.mulDiv(coveredIL, Q96, uint256(exitSqrtPriceX96)),
+                Q96,
+                uint256(exitSqrtPriceX96)
+            )
+            : 0;
+
+        // Scale to WAD (18-dec) for comparison with maxPayout (also WAD)
+        uint256 coveredILWad = coveredILInUSDC * 1e12;
+
+        // Cap at maxPayout (both in 18-dec WAD)
+        uint256 payoutWad = coveredILWad > pos.maxPayout ? pos.maxPayout : coveredILWad;
 
         // Deduct settlement fee
-        uint256 fee = payout * settlementFeeRate / BPS;
-        payout = payout > fee ? payout - fee : 0;
+        uint256 fee = payoutWad * settlementFeeRate / BPS;
+        payoutWad = payoutWad > fee ? payoutWad - fee : 0;
+
+        // Convert to 6-dec USDC for actual transfer
+        payout = payoutWad / 1e12;
     }
 
     function _executePayout(uint256 amount) internal {
@@ -423,10 +442,8 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
         uint256 blocksElapsed = block.number - pos.lastPremiumBlock;
         if (blocksElapsed == 0) return;
 
-        // premiumRatePerBlock is 18 dec, premiumBalance is 6 dec USDC
-        // Convert due amount to 6 dec for deduction
-        uint256 premiumDueWad = blocksElapsed * pos.premiumRatePerBlock;
-        uint256 premiumDue = premiumDueWad / 1e12;
+        // Both premiumRatePerBlock and premiumBalance are 18-dec WAD
+        uint256 premiumDue = blocksElapsed * pos.premiumRatePerBlock;
         uint256 deducted = premiumDue > pos.premiumBalance ? pos.premiumBalance : premiumDue;
 
         pos.premiumBalance -= deducted;
@@ -440,9 +457,8 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
         uint256 blocksElapsed = block.number - pos.lastPremiumBlock;
         if (blocksElapsed == 0) return;
 
-        // premiumRatePerBlock is 18 dec, premiumBalance is 6 dec USDC
-        uint256 premiumDueWad = blocksElapsed * pos.premiumRatePerBlock;
-        uint256 premiumDue = premiumDueWad / 1e12;
+        // Both premiumRatePerBlock and premiumBalance are 18-dec WAD
+        uint256 premiumDue = blocksElapsed * pos.premiumRatePerBlock;
         uint256 deducted = premiumDue > pos.premiumBalance ? pos.premiumBalance : premiumDue;
 
         pos.premiumBalance -= deducted;
@@ -455,7 +471,11 @@ contract ILShieldCore is AccessControl, ReentrancyGuard, Pausable {
         emit StreamingProcessed(ilpnId, deducted);
     }
 
-    function _distributePremium(uint256 amount, address referrer) internal {
+    function _distributePremium(uint256 amountWad, address referrer) internal {
+        // Convert from 18-dec WAD to 6-dec USDC for actual transfers
+        uint256 amount = amountWad / 1e12;
+        if (amount == 0) return;
+
         uint256 toSenior = amount * seniorShare / BPS;
         uint256 toJunior = amount * juniorShare / BPS;
         uint256 toTreasury = amount * treasuryShare / BPS;

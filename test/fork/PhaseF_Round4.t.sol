@@ -275,9 +275,9 @@ contract PhaseF_Round4 is ForkBase {
         uint256 id = _registerAs(alice, 500e6);
         // Inject max uint128 liquidity — IL will be astronomical
         _injectPosition(id, 79228162514264337593543950336, -6000, 6000, type(uint128).max);
-        // Cap maxPayout at vault's capacity to avoid ERC20InsufficientBalance
+        // Cap maxPayout at vault's capacity (in WAD) to avoid ERC20InsufficientBalance
         uint256 juniorBal = juniorVault.totalAssets();
-        _setMaxPayout(id, juniorBal / 2); // cap at half Junior TVL
+        _setMaxPayout(id, (juniorBal / 2) * 1e12); // cap at half Junior TVL, scaled to WAD
 
         vm.roll(block.number + 10);
 

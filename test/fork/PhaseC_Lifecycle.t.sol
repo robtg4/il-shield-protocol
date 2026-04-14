@@ -3,6 +3,7 @@ pragma solidity ^0.8.26;
 
 import {ForkBase, console} from "./ForkBase.t.sol";
 import {ILMath} from "../../src/libraries/ILMath.sol";
+import {FullMath} from "@uniswap/v4-core/src/libraries/FullMath.sol";
 
 /// @title Phase C: Full Lifecycle (C01–C08)
 contract PhaseC_Lifecycle is ForkBase {
@@ -160,7 +161,10 @@ contract PhaseC_Lifecycle is ForkBase {
         // payout = IL * 10000/10000 * (10000 - 200) / 10000
         // But _computePayout applies fee on the capped amount: payout = coveredIL - fee
         // fee = coveredIL * 200 / 10000, payout = coveredIL * 9800 / 10000
-        uint256 expectedPayout = expectedIL * 9800 / 10000;
+        // Convert IL from token1 to USDC using exit price
+        uint256 Q96 = 2**96;
+        uint256 ilUSDC = FullMath.mulDiv(FullMath.mulDiv(expectedIL, Q96, uint256(exitSqrt)), Q96, uint256(exitSqrt));
+        uint256 expectedPayout = ilUSDC * 9800 / 10000;
 
         uint256 balBefore = mockUSDC.balanceOf(alice);
         vm.prank(alice);
@@ -262,8 +266,8 @@ contract PhaseC_Lifecycle is ForkBase {
         uint256 balAfter = uint256(vm.load(address(core), bytes32(uint256(baseSlot) + 3)));
         console.log("C12 Premium balance after:", balAfter);
 
-        // Streaming converts 18-dec rate to 6-dec USDC: deduction = (rate * blocks) / 1e12
-        uint256 expectedDeduction = (premiumRate * 1_000_000) / 1e12;
+        // Both premiumBalance and rate are 18-dec WAD. Deduction = rate * blocks (no conversion)
+        uint256 expectedDeduction = premiumRate * 1_000_000;
         uint256 actualDeduction = balBefore - balAfter;
         console.log("C12 Expected deduction:", expectedDeduction);
         console.log("C12 Actual deduction:", actualDeduction);

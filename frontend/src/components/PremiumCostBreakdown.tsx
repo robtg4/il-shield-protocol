@@ -72,19 +72,33 @@ export function PremiumCostBreakdown({
 
       {/* Selected tier detail */}
       {selected && selected.totalCostUSD > 0 && (
-        <div className="flex items-center justify-between text-[12px] px-1">
-          <span className="text-text3">
-            {TIER_LABELS[selectedTier]} coverage × {durationLabel}
-          </span>
-          <span className="font-mono text-text1">
-            min. ${selected.totalCostUSD.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC
-          </span>
+        <div className="space-y-1 text-[12px] px-1">
+          <div className="flex items-center justify-between">
+            <span className="text-text3">
+              {TIER_LABELS[selectedTier]} coverage × {durationLabel}
+            </span>
+            <span className="font-mono text-text1">
+              ${selected.totalCostUSD.toLocaleString(undefined, { maximumFractionDigits: 4 })} USDC
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <span className="text-text3">Recommended deposit</span>
+            <span className="font-mono text-pink font-medium">
+              ${selected.minDepositUSD.toLocaleString(undefined, { maximumFractionDigits: 4 })} USDC
+            </span>
+          </div>
+        </div>
+      )}
+
+      {selected && selected.totalCostUSD > 0 && selected.totalCostUSD < 0.01 && (
+        <div className="text-[12px] text-text3 px-1 mt-1">
+          Premium is under $0.01 for this position size. Larger positions pay proportionally more.
         </div>
       )}
 
       {selected && selected.totalCostUSD === 0 && (
         <div className="text-[12px] text-green px-1">
-          No minimum premium — premiumRate is 0 on testnet
+          No minimum premium — premiumRate is 0
         </div>
       )}
     </div>

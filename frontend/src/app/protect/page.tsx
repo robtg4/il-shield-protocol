@@ -152,6 +152,7 @@ function HomeInner() {
     premiumPoolId,
     selectedPosition?.tickLower ?? 0,
     selectedPosition?.tickUpper ?? 0,
+    selectedPosition?.liquidity ?? BigInt(0),
     selectedTier,
     selectedDuration,
   );

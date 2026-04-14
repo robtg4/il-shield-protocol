@@ -20,34 +20,36 @@ const ORACLE_ABI = [
 ] as const;
 
 export interface PremiumQuote {
-  /** Rate per block in USDC (raw, 18 decimals) */
+  /** Rate per block for this position (18-dec WAD, liquidity-scaled) */
   ratePerBlock: bigint;
-  /** Cost for selected duration in USDC (6 decimals) */
+  /** Total cost for selected duration (6-dec USDC) */
   totalCost: bigint;
-  /** Cost in human-readable USD */
+  /** Total cost in USD */
   totalCostUSD: number;
   /** Daily cost in USD */
   dailyCostUSD: number;
   /** Monthly cost in USD */
   monthlyCostUSD: number;
+  /** Recommended minimum deposit (total cost, in USD) */
+  minDepositUSD: number;
 }
 
 export interface PremiumQuotes {
-  /** Quote for each tier (0=50%, 1=75%, 2=100%) */
   tiers: [PremiumQuote | null, PremiumQuote | null, PremiumQuote | null];
-  /** Currently selected tier's quote */
   selected: PremiumQuote | null;
   isLoading: boolean;
 }
 
 /**
  * Read premium rates from the PricingOracle for all 3 tiers,
+ * scale by position liquidity (matching the contract's register() logic),
  * then compute total cost for the selected duration.
  */
 export function usePremiumQuote(
   poolId: string | null,
   tickLower: number,
   tickUpper: number,
+  liquidity: bigint,
   selectedTier: number,
   selectedDuration: string,
 ): PremiumQuotes {
@@ -55,7 +57,6 @@ export function usePremiumQuote(
   const oracleAddr = addrs.PricingOracle;
   const hasPool = !!poolId && poolId !== "0x0000000000000000000000000000000000000000000000000000000000000000";
 
-  // Read premium rate for all 3 tiers in one batch
   const calls = [0, 1, 2].map((tier) => ({
     address: oracleAddr,
     abi: ORACLE_ABI,
@@ -75,25 +76,37 @@ export function usePremiumQuote(
     const result = data?.[tierIndex];
     if (!result || result.status !== "success" || result.result === undefined) return null;
 
-    const ratePerBlockWad = result.result as bigint;
-    // Oracle returns rate in 18 decimals per unit liquidity per block.
-    // IMPORTANT: multiply by blocks FIRST, then divide by 1e12 to preserve precision.
-    // Dividing per-block rate by 1e12 first truncates to 0 for small rates.
-    const totalCostWad = ratePerBlockWad * durationBlocks;
+    const ratePerUnitLiq = result.result as bigint;
+
+    // Scale by position liquidity — matches contract:
+    // premiumRate = FullMath.mulDiv(ratePerUnitLiq, liquidity, 1e18)
+    const scaledRate = liquidity > BigInt(0)
+      ? (ratePerUnitLiq * liquidity) / BigInt(1e18)
+      : ratePerUnitLiq;
+
+    // Total cost for duration (multiply first, divide last for precision)
+    // The contract stores premiumBalance in WAD (18-dec) and compares:
+    //   premiumDepositWad (= deposit * 1e12) >= scaledRate * durationBlocks
+    // So minDeposit (6-dec USDC) = (scaledRate * durationBlocks) / 1e12
+    const totalCostWad = scaledRate * durationBlocks;
     const totalCost6Dec = totalCostWad / BigInt(1e12);
     const totalCostUSD = Number(totalCost6Dec) / 1e6;
 
-    const dailyCostWad = ratePerBlockWad * blocksPerDay;
+    const dailyCostWad = scaledRate * blocksPerDay;
     const dailyCost6Dec = dailyCostWad / BigInt(1e12);
     const dailyCostUSD = Number(dailyCost6Dec) / 1e6;
     const monthlyCostUSD = dailyCostUSD * 30;
 
+    // Add 5% buffer to min deposit for rounding safety
+    const minDepositUSD = totalCostUSD * 1.05;
+
     return {
-      ratePerBlock: ratePerBlockWad,
+      ratePerBlock: scaledRate,
       totalCost: totalCost6Dec,
       totalCostUSD,
       dailyCostUSD,
       monthlyCostUSD,
+      minDepositUSD,
     };
   }
 

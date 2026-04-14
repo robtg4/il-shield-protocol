@@ -24,7 +24,7 @@ const infoLinks = [
 ];
 
 const appLinks = [
-  { label: "Protect", href: "/" },
+  { label: "Protect", href: "/protect" },
   { label: "Positions", href: "/positions" },
   { label: "Vaults", href: "/vaults" },
 ];

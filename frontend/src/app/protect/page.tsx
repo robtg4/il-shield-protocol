@@ -40,6 +40,7 @@ import { SupportedDexRow } from "@/components/SupportedDexRow";
 import { getDeployedDexesForChain, type DexConfig } from "@/config/dex-registry";
 import { usePremiumQuote } from "@/hooks/usePremiumQuote";
 import { PremiumCostBreakdown } from "@/components/PremiumCostBreakdown";
+import { DepositGuidance } from "@/components/DepositGuidance";
 import { TxProgressOverlay } from "@/components/TxProgressOverlay";
 import { useActiveProtections } from "@/hooks/useActiveProtections";
 import { ProtectionsList } from "@/components/ProtectionCard";
@@ -412,6 +413,22 @@ function HomeInner() {
                       mono
                     />
                   </div>
+
+                  {/* Deposit guidance — shows how much to deposit for real coverage */}
+                  {selectedPosition && analytics && analytics.liquidity > BigInt(0) && (
+                    <div className="mt-3">
+                      <DepositGuidance
+                        sqrtPriceX96={analytics.sqrtPriceX96}
+                        tickLower={selectedPosition.tickLower}
+                        tickUpper={selectedPosition.tickUpper}
+                        liquidity={analytics.liquidity}
+                        currentDeposit={parseFloat(premiumAmount) || 0}
+                        coverageTier={selectedTier}
+                        token1Decimals={18}
+                        token1PriceUSD={analytics.currentPrice}
+                      />
+                    </div>
+                  )}
 
                   {/* Error display */}
                   {registerError && (

@@ -38,9 +38,11 @@ const CORE_ABI = [
 
 export interface ActiveProtection {
   ilpnId: number;
+  entrySqrtPriceX96: bigint;
   coverageTier: number;
   premiumBalance: bigint;
   premiumRatePerBlock: bigint;
+  premiumDeposit: bigint; // initial deposit = maxPayout / 10
   settled: boolean;
   coverageStartBlock: number;
   coverageEndBlock: number;
@@ -94,14 +96,16 @@ export function useActiveProtections() {
 
       protections.push({
         ilpnId: i,
+        entrySqrtPriceX96: data[1] as bigint,
         coverageTier: Number(data[5]),
         premiumBalance: data[8] as bigint,
         premiumRatePerBlock: data[9] as bigint,
+        premiumDeposit: (data[11] as bigint) / BigInt(10), // maxPayout = deposit * 10
         settled: data[12] as boolean,
         coverageStartBlock: Number(data[6]),
         coverageEndBlock: Number(data[7]),
-        tickLower: Number(data[3]),
-        tickUpper: Number(data[4]),
+        tickLower: Number(data[2]),
+        tickUpper: Number(data[3]),
         liquidity: data[4] as bigint,
         maxPayout: data[11] as bigint,
       });

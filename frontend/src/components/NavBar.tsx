@@ -18,12 +18,15 @@ function ShieldIcon({ size = 16 }: { size?: number }) {
   );
 }
 
-const navLinks = [
+const infoLinks = [
+  { label: "About", href: "/about" },
+  { label: "Research", href: "/research" },
+];
+
+const appLinks = [
   { label: "Protect", href: "/" },
   { label: "Positions", href: "/positions" },
   { label: "Vaults", href: "/vaults" },
-  { label: "About", href: "/about" },
-  { label: "Research", href: "/research" },
 ];
 
 const CONNECTOR_LABELS: Record<string, string> = {
@@ -142,7 +145,7 @@ export function NavBar() {
   return (
     <nav className="relative z-10 w-full px-4 py-3 sm:px-5">
       <div className="mx-auto flex max-w-[1400px] items-center justify-between">
-        {/* Left: Brand + Links */}
+        {/* Left: Brand + Info links */}
         <div className="flex items-center gap-4 sm:gap-6">
           <Link href="/" className="flex items-center gap-2">
             <div className="flex h-7 w-7 items-center justify-center rounded-full bg-pink sm:h-6 sm:w-6">
@@ -150,12 +153,12 @@ export function NavBar() {
             </div>
             <span className="text-[17px] font-semibold text-pink">IL Shield</span>
           </Link>
-          <div className="flex items-center gap-4 sm:gap-6">
-            {navLinks.map((link) => (
+          <div className="flex items-center gap-3 sm:gap-5">
+            {infoLinks.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}
-                className="text-[14px] text-text2 transition-colors hover:text-text1 sm:text-[15px]"
+                className="text-[13px] text-text3 transition-colors hover:text-text2 sm:text-[14px]"
               >
                 {link.label}
               </Link>
@@ -163,8 +166,17 @@ export function NavBar() {
           </div>
         </div>
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-2">
+        {/* Right: App links + Actions */}
+        <div className="flex items-center gap-3 sm:gap-5">
+          {appLinks.map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              className="text-[14px] text-text2 transition-colors hover:text-text1 sm:text-[15px]"
+            >
+              {link.label}
+            </Link>
+          ))}
           <ChainBadge />
           <ConnectButton />
         </div>

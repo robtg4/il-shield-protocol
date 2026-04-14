@@ -384,6 +384,12 @@ function HomeInner() {
                         quotes={premiumQuotes}
                         selectedTier={selectedTier}
                         selectedDuration={selectedDuration}
+                        sqrtPriceX96={analytics?.sqrtPriceX96}
+                        tickLower={selectedPosition.tickLower}
+                        tickUpper={selectedPosition.tickUpper}
+                        liquidity={selectedPosition.liquidity}
+                        token1Decimals={18}
+                        token1PriceUSD={analytics?.currentPrice}
                       />
                     </div>
                   )}

@@ -1,0 +1,2066 @@
+{
+  "summary": {
+    "total_epochs": 76,
+    "years": 6.2,
+    "position_value": 10000,
+    "epoch_days": 30,
+    "tick_range_pct": 0.2,
+    "total_il_usd": 7422.33,
+    "avg_il_per_epoch": 97.66,
+    "tier_50_total_premium": 3147.64,
+    "tier_50_total_payout": 3636.94,
+    "tier_50_total_net": 489.3,
+    "tier_50_combined_ratio": 1.155,
+    "tier_50_annual_premium": 504.24,
+    "tier_50_annual_payout": 582.63,
+    "tier_50_annual_net_benefit": 78.38,
+    "tier_50_annual_return_unhedged_pct": -10.07,
+    "tier_50_annual_return_hedged_pct": -9.28,
+    "tier_75_total_premium": 4721.46,
+    "tier_75_total_payout": 5455.41,
+    "tier_75_total_net": 733.95,
+    "tier_75_combined_ratio": 1.155,
+    "tier_75_annual_premium": 756.36,
+    "tier_75_annual_payout": 873.94,
+    "tier_75_annual_net_benefit": 117.58,
+    "tier_75_annual_return_unhedged_pct": -10.07,
+    "tier_75_annual_return_hedged_pct": -8.89,
+    "tier_100_total_premium": 6295.28,
+    "tier_100_total_payout": 7273.88,
+    "tier_100_total_net": 978.6,
+    "tier_100_combined_ratio": 1.155,
+    "tier_100_annual_premium": 1008.49,
+    "tier_100_annual_payout": 1165.26,
+    "tier_100_annual_net_benefit": 156.77,
+    "tier_100_annual_return_unhedged_pct": -10.07,
+    "tier_100_annual_return_hedged_pct": -8.5
+  },
+  "stress_tests": [
+    {
+      "event": "COVID Crash",
+      "period": "2020-03-01 to 2020-03-31",
+      "max_il_usd": 295.21,
+      "avg_il_usd": 193.24,
+      "max_price_drop_pct": -26.63,
+      "payout_100_tier": 289.31
+    },
+    {
+      "event": "May 2021 Crash",
+      "period": "2021-05-10 to 2021-06-10",
+      "max_il_usd": 997.61,
+      "avg_il_usd": 557.15,
+      "max_price_drop_pct": -51.81,
+      "payout_100_tier": 977.66
+    },
+    {
+      "event": "LUNA Collapse",
+      "period": "2022-05-01 to 2022-05-31",
+      "max_il_usd": 735.23,
+      "avg_il_usd": 592.57,
+      "max_price_drop_pct": -46.32,
+      "payout_100_tier": 720.53
+    },
+    {
+      "event": "FTX Collapse",
+      "period": "2022-11-01 to 2022-11-30",
+      "max_il_usd": 263.18,
+      "avg_il_usd": 133.06,
+      "max_price_drop_pct": -30.75,
+      "payout_100_tier": 257.92
+    },
+    {
+      "event": "Bear Bottom",
+      "period": "2022-06-01 to 2022-06-30",
+      "max_il_usd": 449.91,
+      "avg_il_usd": 269.0,
+      "max_price_drop_pct": -38.3,
+      "payout_100_tier": 440.91
+    },
+    {
+      "event": "Yen Carry Trade",
+      "period": "2024-08-01 to 2024-08-31",
+      "max_il_usd": 149.43,
+      "avg_il_usd": 135.59,
+      "max_price_drop_pct": -24.12,
+      "payout_100_tier": 146.44
+    }
+  ],
+  "epochs": [
+    {
+      "start_date": "2020-01-01",
+      "end_date": "2020-01-31",
+      "entry_price": 129.72,
+      "exit_price": 227.38,
+      "price_change_pct": 75.29,
+      "il_pct_full_range": 3.8123,
+      "il_pct_concentrated": 6.0277,
+      "il_usd": 602.77,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 98.1678,
+        "1": 147.2517,
+        "2": 196.3356
+      },
+      "payout": {
+        "0": 295.3575,
+        "1": 443.0362,
+        "2": 590.7149
+      },
+      "net_pnl": {
+        "0": 197.1897,
+        "1": 295.7845,
+        "2": 394.3793
+      }
+    },
+    {
+      "start_date": "2020-01-31",
+      "end_date": "2020-03-01",
+      "entry_price": 227.38,
+      "exit_price": 166.83,
+      "price_change_pct": -26.63,
+      "il_pct_full_range": 1.1867,
+      "il_pct_concentrated": 1.8763,
+      "il_usd": 187.63,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 98.1678,
+        "1": 147.2517,
+        "2": 196.3356
+      },
+      "payout": {
+        "0": 91.9377,
+        "1": 137.9065,
+        "2": 183.8754
+      },
+      "net_pnl": {
+        "0": -6.2301,
+        "1": -9.3452,
+        "2": -12.4602
+      }
+    },
+    {
+      "start_date": "2020-03-01",
+      "end_date": "2020-03-31",
+      "entry_price": 166.83,
+      "exit_price": 133.62,
+      "price_change_pct": -19.91,
+      "il_pct_full_range": 0.6128,
+      "il_pct_concentrated": 0.9689,
+      "il_usd": 96.89,
+      "realized_vol": 74.5,
+      "premium_paid": {
+        "0": 72.6653,
+        "1": 108.998,
+        "2": 145.3307
+      },
+      "payout": {
+        "0": 47.4747,
+        "1": 71.212,
+        "2": 94.9494
+      },
+      "net_pnl": {
+        "0": -25.1906,
+        "1": -37.786,
+        "2": -50.3813
+      }
+    },
+    {
+      "start_date": "2020-03-31",
+      "end_date": "2020-04-30",
+      "entry_price": 133.62,
+      "exit_price": 197.26,
+      "price_change_pct": 47.63,
+      "il_pct_full_range": 1.8671,
+      "il_pct_concentrated": 2.9521,
+      "il_usd": 295.21,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 98.1678,
+        "1": 147.2517,
+        "2": 196.3356
+      },
+      "payout": {
+        "0": 144.6534,
+        "1": 216.9802,
+        "2": 289.3069
+      },
+      "net_pnl": {
+        "0": 46.4856,
+        "1": 69.7285,
+        "2": 92.9713
+      }
+    },
+    {
+      "start_date": "2020-04-30",
+      "end_date": "2020-05-30",
+      "entry_price": 197.26,
+      "exit_price": 268.17,
+      "price_change_pct": 35.95,
+      "il_pct_full_range": 1.1674,
+      "il_pct_concentrated": 1.8458,
+      "il_usd": 184.58,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 98.1678,
+        "1": 147.2517,
+        "2": 196.3356
+      },
+      "payout": {
+        "0": 90.445,
+        "1": 135.6675,
+        "2": 180.8901
+      },
+      "net_pnl": {
+        "0": -7.7228,
+        "1": -11.5842,
+        "2": -15.4455
+      }
+    },
+    {
+      "start_date": "2020-05-30",
+      "end_date": "2020-06-29",
+      "entry_price": 268.17,
+      "exit_price": 326.99,
+      "price_change_pct": 21.93,
+      "il_pct_full_range": 0.4896,
+      "il_pct_concentrated": 0.7741,
+      "il_usd": 77.41,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 58.0562,
+        "1": 87.0842,
+        "2": 116.1123
+      },
+      "payout": {
+        "0": 37.93,
+        "1": 56.895,
+        "2": 75.86
+      },
+      "net_pnl": {
+        "0": -20.1262,
+        "1": -30.1892,
+        "2": -40.2523
+      }
+    },
+    {
+      "start_date": "2020-06-29",
+      "end_date": "2020-07-29",
+      "entry_price": 326.99,
+      "exit_price": 392.47,
+      "price_change_pct": 20.03,
+      "il_pct_full_range": 0.415,
+      "il_pct_concentrated": 0.6562,
+      "il_usd": 65.62,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 49.2161,
+        "1": 73.8242,
+        "2": 98.4323
+      },
+      "payout": {
+        "0": 32.1545,
+        "1": 48.2318,
+        "2": 64.3091
+      },
+      "net_pnl": {
+        "0": -17.0616,
+        "1": -25.5924,
+        "2": -34.1232
+      }
+    },
+    {
+      "start_date": "2020-07-29",
+      "end_date": "2020-08-28",
+      "entry_price": 392.47,
+      "exit_price": 452.4,
+      "price_change_pct": 15.27,
+      "il_pct_full_range": 0.2519,
+      "il_pct_concentrated": 0.3983,
+      "il_usd": 39.83,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 29.8715,
+        "1": 44.8073,
+        "2": 59.743
+      },
+      "payout": {
+        "0": 19.5161,
+        "1": 29.2741,
+        "2": 39.0321
+      },
+      "net_pnl": {
+        "0": -10.3554,
+        "1": -15.5332,
+        "2": -20.7109
+      }
+    },
+    {
+      "start_date": "2020-08-28",
+      "end_date": "2020-09-27",
+      "entry_price": 452.4,
+      "exit_price": 530.23,
+      "price_change_pct": 17.2,
+      "il_pct_full_range": 0.3142,
+      "il_pct_concentrated": 0.4967,
+      "il_usd": 49.67,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 37.2562,
+        "1": 55.8842,
+        "2": 74.5123
+      },
+      "payout": {
+        "0": 24.3407,
+        "1": 36.511,
+        "2": 48.6814
+      },
+      "net_pnl": {
+        "0": -12.9155,
+        "1": -19.3732,
+        "2": -25.8309
+      }
+    },
+    {
+      "start_date": "2020-09-27",
+      "end_date": "2020-10-27",
+      "entry_price": 530.23,
+      "exit_price": 603.83,
+      "price_change_pct": 13.88,
+      "il_pct_full_range": 0.2108,
+      "il_pct_concentrated": 0.3333,
+      "il_usd": 33.33,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 25.0002,
+        "1": 37.5002,
+        "2": 50.0003
+      },
+      "payout": {
+        "0": 16.3334,
+        "1": 24.5002,
+        "2": 32.6669
+      },
+      "net_pnl": {
+        "0": -8.6668,
+        "1": -13.0,
+        "2": -17.3334
+      }
+    },
+    {
+      "start_date": "2020-10-27",
+      "end_date": "2020-11-26",
+      "entry_price": 603.83,
+      "exit_price": 664.62,
+      "price_change_pct": 10.07,
+      "il_pct_full_range": 0.1149,
+      "il_pct_concentrated": 0.1817,
+      "il_usd": 18.17,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 13.626,
+        "1": 20.439,
+        "2": 27.252
+      },
+      "payout": {
+        "0": 8.9023,
+        "1": 13.3535,
+        "2": 17.8046
+      },
+      "net_pnl": {
+        "0": -4.7237,
+        "1": -7.0855,
+        "2": -9.4474
+      }
+    },
+    {
+      "start_date": "2020-11-26",
+      "end_date": "2020-12-26",
+      "entry_price": 664.62,
+      "exit_price": 727.54,
+      "price_change_pct": 9.47,
+      "il_pct_full_range": 0.1022,
+      "il_pct_concentrated": 0.1616,
+      "il_usd": 16.16,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 12.1178,
+        "1": 18.1766,
+        "2": 24.2355
+      },
+      "payout": {
+        "0": 7.9169,
+        "1": 11.8754,
+        "2": 15.8339
+      },
+      "net_pnl": {
+        "0": -4.2009,
+        "1": -6.3012,
+        "2": -8.4016
+      }
+    },
+    {
+      "start_date": "2020-12-26",
+      "end_date": "2021-01-25",
+      "entry_price": 727.54,
+      "exit_price": 1380.71,
+      "price_change_pct": 89.78,
+      "il_pct_full_range": 4.9204,
+      "il_pct_concentrated": 7.7798,
+      "il_usd": 777.98,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 98.1678,
+        "1": 147.2517,
+        "2": 196.3356
+      },
+      "payout": {
+        "0": 381.2083,
+        "1": 571.8125,
+        "2": 762.4166
+      },
+      "net_pnl": {
+        "0": 283.0405,
+        "1": 424.5608,
+        "2": 566.081
+      }
+    },
+    {
+      "start_date": "2021-01-25",
+      "end_date": "2021-02-24",
+      "entry_price": 1380.71,
+      "exit_price": 2075.19,
+      "price_change_pct": 50.3,
+      "il_pct_full_range": 2.04,
+      "il_pct_concentrated": 3.2254,
+      "il_usd": 322.54,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 98.1678,
+        "1": 147.2517,
+        "2": 196.3356
+      },
+      "payout": {
+        "0": 158.0468,
+        "1": 237.0702,
+        "2": 316.0936
+      },
+      "net_pnl": {
+        "0": 59.879,
+        "1": 89.8185,
+        "2": 119.758
+      }
+    },
+    {
+      "start_date": "2021-02-24",
+      "end_date": "2021-03-26",
+      "entry_price": 2075.19,
+      "exit_price": 3024.04,
+      "price_change_pct": 45.72,
+      "il_pct_full_range": 1.7465,
+      "il_pct_concentrated": 2.7614,
+      "il_usd": 276.14,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 98.1678,
+        "1": 147.2517,
+        "2": 196.3356
+      },
+      "payout": {
+        "0": 135.3104,
+        "1": 202.9656,
+        "2": 270.6208
+      },
+      "net_pnl": {
+        "0": 37.1426,
+        "1": 55.7139,
+        "2": 74.2852
+      }
+    },
+    {
+      "start_date": "2021-03-26",
+      "end_date": "2021-04-25",
+      "entry_price": 3024.04,
+      "exit_price": 3812.73,
+      "price_change_pct": 26.08,
+      "il_pct_full_range": 0.6676,
+      "il_pct_concentrated": 1.0556,
+      "il_usd": 105.56,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 79.1706,
+        "1": 118.756,
+        "2": 158.3413
+      },
+      "payout": {
+        "0": 51.7248,
+        "1": 77.5872,
+        "2": 103.4496
+      },
+      "net_pnl": {
+        "0": -27.4458,
+        "1": -41.1688,
+        "2": -54.8917
+      }
+    },
+    {
+      "start_date": "2021-04-25",
+      "end_date": "2021-05-25",
+      "entry_price": 3812.73,
+      "exit_price": 1837.51,
+      "price_change_pct": -51.81,
+      "il_pct_full_range": 6.3094,
+      "il_pct_concentrated": 9.9761,
+      "il_usd": 997.61,
+      "realized_vol": 100.9,
+      "premium_paid": {
+        "0": 236.194,
+        "1": 354.2909,
+        "2": 472.3879
+      },
+      "payout": {
+        "0": 488.8265,
+        "1": 733.2397,
+        "2": 977.6529
+      },
+      "net_pnl": {
+        "0": 252.6325,
+        "1": 378.9488,
+        "2": 505.265
+      }
+    },
+    {
+      "start_date": "2021-05-25",
+      "end_date": "2021-06-24",
+      "entry_price": 1837.51,
+      "exit_price": 2344.68,
+      "price_change_pct": 27.6,
+      "il_pct_full_range": 0.738,
+      "il_pct_concentrated": 1.1669,
+      "il_usd": 116.69,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 87.5198,
+        "1": 131.2797,
+        "2": 175.0397
+      },
+      "payout": {
+        "0": 57.1796,
+        "1": 85.7694,
+        "2": 114.3592
+      },
+      "net_pnl": {
+        "0": -30.3402,
+        "1": -45.5103,
+        "2": -60.6805
+      }
+    },
+    {
+      "start_date": "2021-06-24",
+      "end_date": "2021-07-24",
+      "entry_price": 2344.68,
+      "exit_price": 2770.35,
+      "price_change_pct": 18.15,
+      "il_pct_full_range": 0.3469,
+      "il_pct_concentrated": 0.5485,
+      "il_usd": 54.85,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 41.1344,
+        "1": 61.7016,
+        "2": 82.2687
+      },
+      "payout": {
+        "0": 26.8745,
+        "1": 40.3117,
+        "2": 53.7489
+      },
+      "net_pnl": {
+        "0": -14.2599,
+        "1": -21.3899,
+        "2": -28.5198
+      }
+    },
+    {
+      "start_date": "2021-07-24",
+      "end_date": "2021-08-23",
+      "entry_price": 2770.35,
+      "exit_price": 3324.39,
+      "price_change_pct": 20.0,
+      "il_pct_full_range": 0.414,
+      "il_pct_concentrated": 0.6547,
+      "il_usd": 65.47,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 49.0991,
+        "1": 73.6486,
+        "2": 98.1981
+      },
+      "payout": {
+        "0": 32.0781,
+        "1": 48.1171,
+        "2": 64.1561
+      },
+      "net_pnl": {
+        "0": -17.021,
+        "1": -25.5315,
+        "2": -34.042
+      }
+    },
+    {
+      "start_date": "2021-08-23",
+      "end_date": "2021-09-22",
+      "entry_price": 3324.39,
+      "exit_price": 3889.13,
+      "price_change_pct": 16.99,
+      "il_pct_full_range": 0.3069,
+      "il_pct_concentrated": 0.4853,
+      "il_usd": 48.53,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 36.3974,
+        "1": 54.5962,
+        "2": 72.7949
+      },
+      "payout": {
+        "0": 23.7797,
+        "1": 35.6695,
+        "2": 47.5593
+      },
+      "net_pnl": {
+        "0": -12.6177,
+        "1": -18.9267,
+        "2": -25.2356
+      }
+    },
+    {
+      "start_date": "2021-09-22",
+      "end_date": "2021-10-22",
+      "entry_price": 3889.13,
+      "exit_price": 4367.91,
+      "price_change_pct": 12.31,
+      "il_pct_full_range": 0.1683,
+      "il_pct_concentrated": 0.266,
+      "il_usd": 26.6,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 19.9522,
+        "1": 29.9282,
+        "2": 39.9043
+      },
+      "payout": {
+        "0": 13.0354,
+        "1": 19.5531,
+        "2": 26.0708
+      },
+      "net_pnl": {
+        "0": -6.9168,
+        "1": -10.3751,
+        "2": -13.8335
+      }
+    },
+    {
+      "start_date": "2021-10-22",
+      "end_date": "2021-11-21",
+      "entry_price": 4367.91,
+      "exit_price": 4426.63,
+      "price_change_pct": 1.34,
+      "il_pct_full_range": 0.0022,
+      "il_pct_concentrated": 0.0035,
+      "il_usd": 0.35,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 0.2643,
+        "1": 0.3965,
+        "2": 0.5287
+      },
+      "payout": {
+        "0": 0.1727,
+        "1": 0.259,
+        "2": 0.3454
+      },
+      "net_pnl": {
+        "0": -0.0916,
+        "1": -0.1375,
+        "2": -0.1833
+      }
+    },
+    {
+      "start_date": "2021-11-21",
+      "end_date": "2021-12-21",
+      "entry_price": 4426.63,
+      "exit_price": 3600.33,
+      "price_change_pct": -18.67,
+      "il_pct_full_range": 0.5312,
+      "il_pct_concentrated": 0.84,
+      "il_usd": 84.0,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 62.9984,
+        "1": 94.4976,
+        "2": 125.9969
+      },
+      "payout": {
+        "0": 41.159,
+        "1": 61.7385,
+        "2": 82.3179
+      },
+      "net_pnl": {
+        "0": -21.8394,
+        "1": -32.7591,
+        "2": -43.679
+      }
+    },
+    {
+      "start_date": "2021-12-21",
+      "end_date": "2022-01-20",
+      "entry_price": 3600.33,
+      "exit_price": 2483.34,
+      "price_change_pct": -31.02,
+      "il_pct_full_range": 1.7,
+      "il_pct_concentrated": 2.6879,
+      "il_usd": 268.79,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 98.1678,
+        "1": 147.2517,
+        "2": 196.3356
+      },
+      "payout": {
+        "0": 131.7075,
+        "1": 197.5613,
+        "2": 263.4151
+      },
+      "net_pnl": {
+        "0": 33.5397,
+        "1": 50.3096,
+        "2": 67.0795
+      }
+    },
+    {
+      "start_date": "2022-01-20",
+      "end_date": "2022-02-19",
+      "entry_price": 2483.34,
+      "exit_price": 2545.76,
+      "price_change_pct": 2.51,
+      "il_pct_full_range": 0.0077,
+      "il_pct_concentrated": 0.0122,
+      "il_usd": 1.22,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 0.9135,
+        "1": 1.3702,
+        "2": 1.8269
+      },
+      "payout": {
+        "0": 0.5968,
+        "1": 0.8952,
+        "2": 1.1936
+      },
+      "net_pnl": {
+        "0": -0.3167,
+        "1": -0.475,
+        "2": -0.6333
+      }
+    },
+    {
+      "start_date": "2022-02-19",
+      "end_date": "2022-03-21",
+      "entry_price": 2545.76,
+      "exit_price": 2632.8,
+      "price_change_pct": 3.42,
+      "il_pct_full_range": 0.0141,
+      "il_pct_concentrated": 0.0223,
+      "il_usd": 2.23,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 1.6751,
+        "1": 2.5127,
+        "2": 3.3503
+      },
+      "payout": {
+        "0": 1.0944,
+        "1": 1.6416,
+        "2": 2.1889
+      },
+      "net_pnl": {
+        "0": -0.5807,
+        "1": -0.8711,
+        "2": -1.1614
+      }
+    },
+    {
+      "start_date": "2022-03-21",
+      "end_date": "2022-04-20",
+      "entry_price": 2632.8,
+      "exit_price": 2775.33,
+      "price_change_pct": 5.41,
+      "il_pct_full_range": 0.0347,
+      "il_pct_concentrated": 0.0549,
+      "il_usd": 5.49,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 4.119,
+        "1": 6.1785,
+        "2": 8.2381
+      },
+      "payout": {
+        "0": 2.6911,
+        "1": 4.0367,
+        "2": 5.3822
+      },
+      "net_pnl": {
+        "0": -1.4279,
+        "1": -2.1418,
+        "2": -2.8559
+      }
+    },
+    {
+      "start_date": "2022-04-20",
+      "end_date": "2022-05-20",
+      "entry_price": 2775.33,
+      "exit_price": 1489.84,
+      "price_change_pct": -46.32,
+      "il_pct_full_range": 4.65,
+      "il_pct_concentrated": 7.3523,
+      "il_usd": 735.23,
+      "realized_vol": 124.6,
+      "premium_paid": {
+        "0": 398.0956,
+        "1": 597.1434,
+        "2": 796.1912
+      },
+      "payout": {
+        "0": 360.2611,
+        "1": 540.3916,
+        "2": 720.5222
+      },
+      "net_pnl": {
+        "0": -37.8345,
+        "1": -56.7518,
+        "2": -75.669
+      }
+    },
+    {
+      "start_date": "2022-05-20",
+      "end_date": "2022-06-19",
+      "entry_price": 1489.84,
+      "exit_price": 919.24,
+      "price_change_pct": -38.3,
+      "il_pct_full_range": 2.8455,
+      "il_pct_concentrated": 4.4991,
+      "il_usd": 449.91,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 98.1678,
+        "1": 147.2517,
+        "2": 196.3356
+      },
+      "payout": {
+        "0": 220.4552,
+        "1": 330.6829,
+        "2": 440.9105
+      },
+      "net_pnl": {
+        "0": 122.2874,
+        "1": 183.4312,
+        "2": 244.5749
+      }
+    },
+    {
+      "start_date": "2022-06-19",
+      "end_date": "2022-07-19",
+      "entry_price": 919.24,
+      "exit_price": 1135.86,
+      "price_change_pct": 23.57,
+      "il_pct_full_range": 0.5571,
+      "il_pct_concentrated": 0.8808,
+      "il_usd": 88.08,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 66.0608,
+        "1": 99.0912,
+        "2": 132.1216
+      },
+      "payout": {
+        "0": 43.1597,
+        "1": 64.7396,
+        "2": 86.3194
+      },
+      "net_pnl": {
+        "0": -22.9011,
+        "1": -34.3516,
+        "2": -45.8022
+      }
+    },
+    {
+      "start_date": "2022-07-19",
+      "end_date": "2022-08-18",
+      "entry_price": 1135.86,
+      "exit_price": 1366.91,
+      "price_change_pct": 20.34,
+      "il_pct_full_range": 0.427,
+      "il_pct_concentrated": 0.6752,
+      "il_usd": 67.52,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 50.6407,
+        "1": 75.961,
+        "2": 101.2814
+      },
+      "payout": {
+        "0": 33.0853,
+        "1": 49.6279,
+        "2": 66.1705
+      },
+      "net_pnl": {
+        "0": -17.5554,
+        "1": -26.3331,
+        "2": -35.1109
+      }
+    },
+    {
+      "start_date": "2022-08-18",
+      "end_date": "2022-09-17",
+      "entry_price": 1366.91,
+      "exit_price": 1590.57,
+      "price_change_pct": 16.36,
+      "il_pct_full_range": 0.2864,
+      "il_pct_concentrated": 0.4528,
+      "il_usd": 45.28,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 33.9591,
+        "1": 50.9387,
+        "2": 67.9183
+      },
+      "payout": {
+        "0": 22.1866,
+        "1": 33.2799,
+        "2": 44.3733
+      },
+      "net_pnl": {
+        "0": -11.7725,
+        "1": -17.6588,
+        "2": -23.545
+      }
+    },
+    {
+      "start_date": "2022-09-17",
+      "end_date": "2022-10-17",
+      "entry_price": 1590.57,
+      "exit_price": 1604.45,
+      "price_change_pct": 0.87,
+      "il_pct_full_range": 0.0009,
+      "il_pct_concentrated": 0.0015,
+      "il_usd": 0.15,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 0.1119,
+        "1": 0.1679,
+        "2": 0.2238
+      },
+      "payout": {
+        "0": 0.0731,
+        "1": 0.1097,
+        "2": 0.1462
+      },
+      "net_pnl": {
+        "0": -0.0388,
+        "1": -0.0582,
+        "2": -0.0776
+      }
+    },
+    {
+      "start_date": "2022-10-17",
+      "end_date": "2022-11-16",
+      "entry_price": 1604.45,
+      "exit_price": 1111.06,
+      "price_change_pct": -30.75,
+      "il_pct_full_range": 1.6645,
+      "il_pct_concentrated": 2.6318,
+      "il_usd": 263.18,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 98.1678,
+        "1": 147.2517,
+        "2": 196.3356
+      },
+      "payout": {
+        "0": 128.9566,
+        "1": 193.4348,
+        "2": 257.9131
+      },
+      "net_pnl": {
+        "0": 30.7888,
+        "1": 46.1831,
+        "2": 61.5775
+      }
+    },
+    {
+      "start_date": "2022-11-16",
+      "end_date": "2022-12-16",
+      "entry_price": 1111.06,
+      "exit_price": 1154.64,
+      "price_change_pct": 3.92,
+      "il_pct_full_range": 0.0185,
+      "il_pct_concentrated": 0.0293,
+      "il_usd": 2.93,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 2.1939,
+        "1": 3.2908,
+        "2": 4.3877
+      },
+      "payout": {
+        "0": 1.4333,
+        "1": 2.15,
+        "2": 2.8667
+      },
+      "net_pnl": {
+        "0": -0.7606,
+        "1": -1.1408,
+        "2": -1.521
+      }
+    },
+    {
+      "start_date": "2022-12-16",
+      "end_date": "2023-01-15",
+      "entry_price": 1154.64,
+      "exit_price": 1309.06,
+      "price_change_pct": 13.37,
+      "il_pct_full_range": 0.1966,
+      "il_pct_concentrated": 0.3109,
+      "il_usd": 31.09,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 23.3163,
+        "1": 34.9745,
+        "2": 46.6326
+      },
+      "payout": {
+        "0": 15.2333,
+        "1": 22.85,
+        "2": 30.4666
+      },
+      "net_pnl": {
+        "0": -8.083,
+        "1": -12.1245,
+        "2": -16.166
+      }
+    },
+    {
+      "start_date": "2023-01-15",
+      "end_date": "2023-02-14",
+      "entry_price": 1309.06,
+      "exit_price": 1580.37,
+      "price_change_pct": 20.73,
+      "il_pct_full_range": 0.4418,
+      "il_pct_concentrated": 0.6986,
+      "il_usd": 69.86,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 52.3925,
+        "1": 78.5887,
+        "2": 104.785
+      },
+      "payout": {
+        "0": 34.2298,
+        "1": 51.3446,
+        "2": 68.4595
+      },
+      "net_pnl": {
+        "0": -18.1627,
+        "1": -27.2441,
+        "2": -36.3255
+      }
+    },
+    {
+      "start_date": "2023-02-14",
+      "end_date": "2023-03-16",
+      "entry_price": 1580.37,
+      "exit_price": 1844.0,
+      "price_change_pct": 16.68,
+      "il_pct_full_range": 0.2968,
+      "il_pct_concentrated": 0.4693,
+      "il_usd": 46.93,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 35.1945,
+        "1": 52.7917,
+        "2": 70.389
+      },
+      "payout": {
+        "0": 22.9937,
+        "1": 34.4906,
+        "2": 45.9874
+      },
+      "net_pnl": {
+        "0": -12.2008,
+        "1": -18.3011,
+        "2": -24.4016
+      }
+    },
+    {
+      "start_date": "2023-03-16",
+      "end_date": "2023-04-15",
+      "entry_price": 1844.0,
+      "exit_price": 2113.16,
+      "price_change_pct": 14.6,
+      "il_pct_full_range": 0.2316,
+      "il_pct_concentrated": 0.3662,
+      "il_usd": 36.62,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 27.4637,
+        "1": 41.1955,
+        "2": 54.9273
+      },
+      "payout": {
+        "0": 17.9429,
+        "1": 26.9144,
+        "2": 35.8858
+      },
+      "net_pnl": {
+        "0": -9.5208,
+        "1": -14.2811,
+        "2": -19.0415
+      }
+    },
+    {
+      "start_date": "2023-04-15",
+      "end_date": "2023-05-15",
+      "entry_price": 2113.16,
+      "exit_price": 1982.49,
+      "price_change_pct": -6.18,
+      "il_pct_full_range": 0.0509,
+      "il_pct_concentrated": 0.0805,
+      "il_usd": 8.05,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 6.037,
+        "1": 9.0554,
+        "2": 12.0739
+      },
+      "payout": {
+        "0": 3.9441,
+        "1": 5.9162,
+        "2": 7.8883
+      },
+      "net_pnl": {
+        "0": -2.0929,
+        "1": -3.1392,
+        "2": -4.1856
+      }
+    },
+    {
+      "start_date": "2023-05-15",
+      "end_date": "2023-06-14",
+      "entry_price": 1982.49,
+      "exit_price": 1950.24,
+      "price_change_pct": -1.63,
+      "il_pct_full_range": 0.0034,
+      "il_pct_concentrated": 0.0053,
+      "il_usd": 0.53,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 0.3987,
+        "1": 0.5981,
+        "2": 0.7975
+      },
+      "payout": {
+        "0": 0.2605,
+        "1": 0.3908,
+        "2": 0.521
+      },
+      "net_pnl": {
+        "0": -0.1382,
+        "1": -0.2073,
+        "2": -0.2765
+      }
+    },
+    {
+      "start_date": "2023-06-14",
+      "end_date": "2023-07-14",
+      "entry_price": 1950.24,
+      "exit_price": 1873.91,
+      "price_change_pct": -3.91,
+      "il_pct_full_range": 0.0199,
+      "il_pct_concentrated": 0.0315,
+      "il_usd": 3.15,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 2.3625,
+        "1": 3.5437,
+        "2": 4.7249
+      },
+      "payout": {
+        "0": 1.5435,
+        "1": 2.3152,
+        "2": 3.087
+      },
+      "net_pnl": {
+        "0": -0.819,
+        "1": -1.2285,
+        "2": -1.6379
+      }
+    },
+    {
+      "start_date": "2023-07-14",
+      "end_date": "2023-08-13",
+      "entry_price": 1873.91,
+      "exit_price": 1787.69,
+      "price_change_pct": -4.6,
+      "il_pct_full_range": 0.0277,
+      "il_pct_concentrated": 0.0438,
+      "il_usd": 4.38,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 3.288,
+        "1": 4.932,
+        "2": 6.5761
+      },
+      "payout": {
+        "0": 2.1482,
+        "1": 3.2223,
+        "2": 4.2964
+      },
+      "net_pnl": {
+        "0": -1.1398,
+        "1": -1.7097,
+        "2": -2.2797
+      }
+    },
+    {
+      "start_date": "2023-08-13",
+      "end_date": "2023-09-12",
+      "entry_price": 1787.69,
+      "exit_price": 1639.46,
+      "price_change_pct": -8.29,
+      "il_pct_full_range": 0.0936,
+      "il_pct_concentrated": 0.148,
+      "il_usd": 14.8,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 11.0971,
+        "1": 16.6457,
+        "2": 22.1943
+      },
+      "payout": {
+        "0": 7.2501,
+        "1": 10.8752,
+        "2": 14.5002
+      },
+      "net_pnl": {
+        "0": -3.847,
+        "1": -5.7705,
+        "2": -7.6941
+      }
+    },
+    {
+      "start_date": "2023-09-12",
+      "end_date": "2023-10-12",
+      "entry_price": 1639.46,
+      "exit_price": 1728.43,
+      "price_change_pct": 5.43,
+      "il_pct_full_range": 0.0349,
+      "il_pct_concentrated": 0.0552,
+      "il_usd": 5.52,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 4.1386,
+        "1": 6.2078,
+        "2": 8.2771
+      },
+      "payout": {
+        "0": 2.7039,
+        "1": 4.0558,
+        "2": 5.4077
+      },
+      "net_pnl": {
+        "0": -1.4347,
+        "1": -2.152,
+        "2": -2.8694
+      }
+    },
+    {
+      "start_date": "2023-10-12",
+      "end_date": "2023-11-11",
+      "entry_price": 1728.43,
+      "exit_price": 1916.19,
+      "price_change_pct": 10.86,
+      "il_pct_full_range": 0.1328,
+      "il_pct_concentrated": 0.21,
+      "il_usd": 21.0,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 15.7468,
+        "1": 23.6201,
+        "2": 31.4935
+      },
+      "payout": {
+        "0": 10.2879,
+        "1": 15.4318,
+        "2": 20.5758
+      },
+      "net_pnl": {
+        "0": -5.4589,
+        "1": -8.1883,
+        "2": -10.9177
+      }
+    },
+    {
+      "start_date": "2023-11-11",
+      "end_date": "2023-12-11",
+      "entry_price": 1916.19,
+      "exit_price": 2171.53,
+      "price_change_pct": 13.33,
+      "il_pct_full_range": 0.1953,
+      "il_pct_concentrated": 0.3088,
+      "il_usd": 30.88,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 23.158,
+        "1": 34.737,
+        "2": 46.316
+      },
+      "payout": {
+        "0": 15.1299,
+        "1": 22.6948,
+        "2": 30.2598
+      },
+      "net_pnl": {
+        "0": -8.0281,
+        "1": -12.0422,
+        "2": -16.0562
+      }
+    },
+    {
+      "start_date": "2023-12-11",
+      "end_date": "2024-01-10",
+      "entry_price": 2171.53,
+      "exit_price": 2573.56,
+      "price_change_pct": 18.51,
+      "il_pct_full_range": 0.3596,
+      "il_pct_concentrated": 0.5685,
+      "il_usd": 56.85,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 42.6394,
+        "1": 63.9591,
+        "2": 85.2787
+      },
+      "payout": {
+        "0": 27.8577,
+        "1": 41.7866,
+        "2": 55.7154
+      },
+      "net_pnl": {
+        "0": -14.7817,
+        "1": -22.1725,
+        "2": -29.5633
+      }
+    },
+    {
+      "start_date": "2024-01-10",
+      "end_date": "2024-02-09",
+      "entry_price": 2573.56,
+      "exit_price": 3167.72,
+      "price_change_pct": 23.09,
+      "il_pct_full_range": 0.5369,
+      "il_pct_concentrated": 0.849,
+      "il_usd": 84.9,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 63.6734,
+        "1": 95.5101,
+        "2": 127.3468
+      },
+      "payout": {
+        "0": 41.6,
+        "1": 62.3999,
+        "2": 83.1999
+      },
+      "net_pnl": {
+        "0": -22.0734,
+        "1": -33.1102,
+        "2": -44.1469
+      }
+    },
+    {
+      "start_date": "2024-02-09",
+      "end_date": "2024-03-10",
+      "entry_price": 3167.72,
+      "exit_price": 3879.15,
+      "price_change_pct": 22.46,
+      "il_pct_full_range": 0.5109,
+      "il_pct_concentrated": 0.8078,
+      "il_usd": 80.78,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 60.5876,
+        "1": 90.8814,
+        "2": 121.1753
+      },
+      "payout": {
+        "0": 39.5839,
+        "1": 59.3759,
+        "2": 79.1678
+      },
+      "net_pnl": {
+        "0": -21.0037,
+        "1": -31.5055,
+        "2": -42.0075
+      }
+    },
+    {
+      "start_date": "2024-03-10",
+      "end_date": "2024-04-09",
+      "entry_price": 3879.15,
+      "exit_price": 3857.22,
+      "price_change_pct": -0.57,
+      "il_pct_full_range": 0.0004,
+      "il_pct_concentrated": 0.0006,
+      "il_usd": 0.06,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 0.0476,
+        "1": 0.0715,
+        "2": 0.0953
+      },
+      "payout": {
+        "0": 0.0311,
+        "1": 0.0467,
+        "2": 0.0623
+      },
+      "net_pnl": {
+        "0": -0.0165,
+        "1": -0.0248,
+        "2": -0.033
+      }
+    },
+    {
+      "start_date": "2024-04-09",
+      "end_date": "2024-05-09",
+      "entry_price": 3857.22,
+      "exit_price": 3946.64,
+      "price_change_pct": 2.32,
+      "il_pct_full_range": 0.0066,
+      "il_pct_concentrated": 0.0104,
+      "il_usd": 1.04,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 0.7785,
+        "1": 1.1678,
+        "2": 1.557
+      },
+      "payout": {
+        "0": 0.5086,
+        "1": 0.7629,
+        "2": 1.0173
+      },
+      "net_pnl": {
+        "0": -0.2699,
+        "1": -0.4049,
+        "2": -0.5397
+      }
+    },
+    {
+      "start_date": "2024-05-09",
+      "end_date": "2024-06-08",
+      "entry_price": 3946.64,
+      "exit_price": 3519.43,
+      "price_change_pct": -10.82,
+      "il_pct_full_range": 0.1638,
+      "il_pct_concentrated": 0.2591,
+      "il_usd": 25.91,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 19.4292,
+        "1": 29.1439,
+        "2": 38.8585
+      },
+      "payout": {
+        "0": 12.6938,
+        "1": 19.0407,
+        "2": 25.3875
+      },
+      "net_pnl": {
+        "0": -6.7354,
+        "1": -10.1032,
+        "2": -13.471
+      }
+    },
+    {
+      "start_date": "2024-06-08",
+      "end_date": "2024-07-08",
+      "entry_price": 3519.43,
+      "exit_price": 2799.81,
+      "price_change_pct": -20.45,
+      "il_pct_full_range": 0.6505,
+      "il_pct_concentrated": 1.0286,
+      "il_usd": 102.86,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 77.1424,
+        "1": 115.7135,
+        "2": 154.2847
+      },
+      "payout": {
+        "0": 50.3997,
+        "1": 75.5995,
+        "2": 100.7993
+      },
+      "net_pnl": {
+        "0": -26.7427,
+        "1": -40.114,
+        "2": -53.4854
+      }
+    },
+    {
+      "start_date": "2024-07-08",
+      "end_date": "2024-08-07",
+      "entry_price": 2799.81,
+      "exit_price": 2124.42,
+      "price_change_pct": -24.12,
+      "il_pct_full_range": 0.9451,
+      "il_pct_concentrated": 1.4943,
+      "il_usd": 149.43,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 98.1678,
+        "1": 147.2517,
+        "2": 196.3356
+      },
+      "payout": {
+        "0": 73.2193,
+        "1": 109.829,
+        "2": 146.4386
+      },
+      "net_pnl": {
+        "0": -24.9485,
+        "1": -37.4227,
+        "2": -49.897
+      }
+    },
+    {
+      "start_date": "2024-08-07",
+      "end_date": "2024-09-06",
+      "entry_price": 2124.42,
+      "exit_price": 2725.1,
+      "price_change_pct": 28.28,
+      "il_pct_full_range": 0.7701,
+      "il_pct_concentrated": 1.2176,
+      "il_usd": 121.76,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 91.3199,
+        "1": 136.9799,
+        "2": 182.6398
+      },
+      "payout": {
+        "0": 59.6623,
+        "1": 89.4935,
+        "2": 119.3247
+      },
+      "net_pnl": {
+        "0": -31.6576,
+        "1": -47.4864,
+        "2": -63.3151
+      }
+    },
+    {
+      "start_date": "2024-09-06",
+      "end_date": "2024-10-06",
+      "entry_price": 2725.1,
+      "exit_price": 2986.67,
+      "price_change_pct": 9.6,
+      "il_pct_full_range": 0.1049,
+      "il_pct_concentrated": 0.1659,
+      "il_usd": 16.59,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 12.4412,
+        "1": 18.6619,
+        "2": 24.8825
+      },
+      "payout": {
+        "0": 8.1283,
+        "1": 12.1924,
+        "2": 16.2566
+      },
+      "net_pnl": {
+        "0": -4.3129,
+        "1": -6.4695,
+        "2": -8.6259
+      }
+    },
+    {
+      "start_date": "2024-10-06",
+      "end_date": "2024-11-05",
+      "entry_price": 2986.67,
+      "exit_price": 3124.57,
+      "price_change_pct": 4.62,
+      "il_pct_full_range": 0.0255,
+      "il_pct_concentrated": 0.0403,
+      "il_usd": 4.03,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 3.0194,
+        "1": 4.5292,
+        "2": 6.0389
+      },
+      "payout": {
+        "0": 1.9727,
+        "1": 2.9591,
+        "2": 3.9454
+      },
+      "net_pnl": {
+        "0": -1.0467,
+        "1": -1.5701,
+        "2": -2.0935
+      }
+    },
+    {
+      "start_date": "2024-11-05",
+      "end_date": "2024-12-05",
+      "entry_price": 3124.57,
+      "exit_price": 3194.71,
+      "price_change_pct": 2.24,
+      "il_pct_full_range": 0.0062,
+      "il_pct_concentrated": 0.0097,
+      "il_usd": 0.97,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 0.7305,
+        "1": 1.0957,
+        "2": 1.461
+      },
+      "payout": {
+        "0": 0.4772,
+        "1": 0.7159,
+        "2": 0.9545
+      },
+      "net_pnl": {
+        "0": -0.2533,
+        "1": -0.3798,
+        "2": -0.5065
+      }
+    },
+    {
+      "start_date": "2024-12-05",
+      "end_date": "2025-01-04",
+      "entry_price": 3194.71,
+      "exit_price": 3336.85,
+      "price_change_pct": 4.45,
+      "il_pct_full_range": 0.0237,
+      "il_pct_concentrated": 0.0374,
+      "il_usd": 3.74,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 2.8084,
+        "1": 4.2125,
+        "2": 5.6167
+      },
+      "payout": {
+        "0": 1.8348,
+        "1": 2.7522,
+        "2": 3.6696
+      },
+      "net_pnl": {
+        "0": -0.9736,
+        "1": -1.4603,
+        "2": -1.9471
+      }
+    },
+    {
+      "start_date": "2025-01-04",
+      "end_date": "2025-02-03",
+      "entry_price": 3336.85,
+      "exit_price": 3293.21,
+      "price_change_pct": -1.31,
+      "il_pct_full_range": 0.0022,
+      "il_pct_concentrated": 0.0034,
+      "il_usd": 0.34,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 0.2569,
+        "1": 0.3853,
+        "2": 0.5138
+      },
+      "payout": {
+        "0": 0.1678,
+        "1": 0.2517,
+        "2": 0.3357
+      },
+      "net_pnl": {
+        "0": -0.0891,
+        "1": -0.1336,
+        "2": -0.1781
+      }
+    },
+    {
+      "start_date": "2025-02-03",
+      "end_date": "2025-03-05",
+      "entry_price": 3293.21,
+      "exit_price": 3165.56,
+      "price_change_pct": -3.88,
+      "il_pct_full_range": 0.0195,
+      "il_pct_concentrated": 0.0309,
+      "il_usd": 3.09,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 2.3163,
+        "1": 3.4744,
+        "2": 4.6325
+      },
+      "payout": {
+        "0": 1.5133,
+        "1": 2.2699,
+        "2": 3.0266
+      },
+      "net_pnl": {
+        "0": -0.803,
+        "1": -1.2045,
+        "2": -1.6059
+      }
+    },
+    {
+      "start_date": "2025-03-05",
+      "end_date": "2025-04-04",
+      "entry_price": 3165.56,
+      "exit_price": 3046.95,
+      "price_change_pct": -3.75,
+      "il_pct_full_range": 0.0182,
+      "il_pct_concentrated": 0.0288,
+      "il_usd": 2.88,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 2.1615,
+        "1": 3.2422,
+        "2": 4.3229
+      },
+      "payout": {
+        "0": 1.4122,
+        "1": 2.1182,
+        "2": 2.8243
+      },
+      "net_pnl": {
+        "0": -0.7493,
+        "1": -1.124,
+        "2": -1.4986
+      }
+    },
+    {
+      "start_date": "2025-04-04",
+      "end_date": "2025-05-04",
+      "entry_price": 3046.95,
+      "exit_price": 2863.56,
+      "price_change_pct": -6.02,
+      "il_pct_full_range": 0.0481,
+      "il_pct_concentrated": 0.0761,
+      "il_usd": 7.61,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 5.7096,
+        "1": 8.5644,
+        "2": 11.4192
+      },
+      "payout": {
+        "0": 3.7303,
+        "1": 5.5954,
+        "2": 7.4606
+      },
+      "net_pnl": {
+        "0": -1.9793,
+        "1": -2.969,
+        "2": -3.9586
+      }
+    },
+    {
+      "start_date": "2025-05-04",
+      "end_date": "2025-06-03",
+      "entry_price": 2863.56,
+      "exit_price": 2806.02,
+      "price_change_pct": -2.01,
+      "il_pct_full_range": 0.0052,
+      "il_pct_concentrated": 0.0081,
+      "il_usd": 0.81,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 0.6107,
+        "1": 0.9161,
+        "2": 1.2215
+      },
+      "payout": {
+        "0": 0.399,
+        "1": 0.5985,
+        "2": 0.798
+      },
+      "net_pnl": {
+        "0": -0.2117,
+        "1": -0.3176,
+        "2": -0.4235
+      }
+    },
+    {
+      "start_date": "2025-06-03",
+      "end_date": "2025-07-03",
+      "entry_price": 2806.02,
+      "exit_price": 2644.3,
+      "price_change_pct": -5.76,
+      "il_pct_full_range": 0.044,
+      "il_pct_concentrated": 0.0696,
+      "il_usd": 6.96,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 5.2213,
+        "1": 7.832,
+        "2": 10.4426
+      },
+      "payout": {
+        "0": 3.4113,
+        "1": 5.1169,
+        "2": 6.8225
+      },
+      "net_pnl": {
+        "0": -1.81,
+        "1": -2.7151,
+        "2": -3.6201
+      }
+    },
+    {
+      "start_date": "2025-07-03",
+      "end_date": "2025-08-02",
+      "entry_price": 2644.3,
+      "exit_price": 2646.62,
+      "price_change_pct": 0.09,
+      "il_pct_full_range": 0.0,
+      "il_pct_concentrated": 0.0,
+      "il_usd": 0.0,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 0.0011,
+        "1": 0.0017,
+        "2": 0.0023
+      },
+      "payout": {
+        "0": 0.0007,
+        "1": 0.0011,
+        "2": 0.0015
+      },
+      "net_pnl": {
+        "0": -0.0004,
+        "1": -0.0006,
+        "2": -0.0008
+      }
+    },
+    {
+      "start_date": "2025-08-02",
+      "end_date": "2025-09-01",
+      "entry_price": 2646.62,
+      "exit_price": 2595.18,
+      "price_change_pct": -1.94,
+      "il_pct_full_range": 0.0048,
+      "il_pct_concentrated": 0.0076,
+      "il_usd": 0.76,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 0.571,
+        "1": 0.8565,
+        "2": 1.142
+      },
+      "payout": {
+        "0": 0.3731,
+        "1": 0.5596,
+        "2": 0.7461
+      },
+      "net_pnl": {
+        "0": -0.1979,
+        "1": -0.2969,
+        "2": -0.3959
+      }
+    },
+    {
+      "start_date": "2025-09-01",
+      "end_date": "2025-10-01",
+      "entry_price": 2595.18,
+      "exit_price": 2573.65,
+      "price_change_pct": -0.83,
+      "il_pct_full_range": 0.0009,
+      "il_pct_concentrated": 0.0014,
+      "il_usd": 0.14,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 0.1029,
+        "1": 0.1543,
+        "2": 0.2057
+      },
+      "payout": {
+        "0": 0.0672,
+        "1": 0.1008,
+        "2": 0.1344
+      },
+      "net_pnl": {
+        "0": -0.0357,
+        "1": -0.0535,
+        "2": -0.0713
+      }
+    },
+    {
+      "start_date": "2025-10-01",
+      "end_date": "2025-10-31",
+      "entry_price": 2573.65,
+      "exit_price": 2601.48,
+      "price_change_pct": 1.08,
+      "il_pct_full_range": 0.0014,
+      "il_pct_concentrated": 0.0023,
+      "il_usd": 0.23,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 0.1715,
+        "1": 0.2572,
+        "2": 0.3429
+      },
+      "payout": {
+        "0": 0.112,
+        "1": 0.168,
+        "2": 0.2241
+      },
+      "net_pnl": {
+        "0": -0.0595,
+        "1": -0.0892,
+        "2": -0.1188
+      }
+    },
+    {
+      "start_date": "2025-10-31",
+      "end_date": "2025-11-30",
+      "entry_price": 2601.48,
+      "exit_price": 2582.28,
+      "price_change_pct": -0.74,
+      "il_pct_full_range": 0.0007,
+      "il_pct_concentrated": 0.0011,
+      "il_usd": 0.11,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 0.0813,
+        "1": 0.122,
+        "2": 0.1627
+      },
+      "payout": {
+        "0": 0.0531,
+        "1": 0.0797,
+        "2": 0.1063
+      },
+      "net_pnl": {
+        "0": -0.0282,
+        "1": -0.0423,
+        "2": -0.0564
+      }
+    },
+    {
+      "start_date": "2025-11-30",
+      "end_date": "2025-12-30",
+      "entry_price": 2582.28,
+      "exit_price": 2494.26,
+      "price_change_pct": -3.41,
+      "il_pct_full_range": 0.015,
+      "il_pct_concentrated": 0.0238,
+      "il_usd": 2.38,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 1.7826,
+        "1": 2.6739,
+        "2": 3.5653
+      },
+      "payout": {
+        "0": 1.1647,
+        "1": 1.747,
+        "2": 2.3293
+      },
+      "net_pnl": {
+        "0": -0.6179,
+        "1": -0.9269,
+        "2": -1.236
+      }
+    },
+    {
+      "start_date": "2025-12-30",
+      "end_date": "2026-01-29",
+      "entry_price": 2494.26,
+      "exit_price": 2475.35,
+      "price_change_pct": -0.76,
+      "il_pct_full_range": 0.0007,
+      "il_pct_concentrated": 0.0011,
+      "il_usd": 0.11,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 0.0859,
+        "1": 0.1288,
+        "2": 0.1717
+      },
+      "payout": {
+        "0": 0.0561,
+        "1": 0.0841,
+        "2": 0.1122
+      },
+      "net_pnl": {
+        "0": -0.0298,
+        "1": -0.0447,
+        "2": -0.0595
+      }
+    },
+    {
+      "start_date": "2026-01-29",
+      "end_date": "2026-02-28",
+      "entry_price": 2475.35,
+      "exit_price": 2406.7,
+      "price_change_pct": -2.77,
+      "il_pct_full_range": 0.0099,
+      "il_pct_concentrated": 0.0156,
+      "il_usd": 1.56,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 1.1725,
+        "1": 1.7587,
+        "2": 2.3449
+      },
+      "payout": {
+        "0": 0.766,
+        "1": 1.149,
+        "2": 1.532
+      },
+      "net_pnl": {
+        "0": -0.4065,
+        "1": -0.6097,
+        "2": -0.8129
+      }
+    },
+    {
+      "start_date": "2026-02-28",
+      "end_date": "2026-03-30",
+      "entry_price": 2406.7,
+      "exit_price": 2416.91,
+      "price_change_pct": 0.42,
+      "il_pct_full_range": 0.0002,
+      "il_pct_concentrated": 0.0004,
+      "il_usd": 0.04,
+      "realized_vol": 70.0,
+      "premium_paid": {
+        "0": 0.0266,
+        "1": 0.0398,
+        "2": 0.0531
+      },
+      "payout": {
+        "0": 0.0174,
+        "1": 0.026,
+        "2": 0.0347
+      },
+      "net_pnl": {
+        "0": -0.0092,
+        "1": -0.0138,
+        "2": -0.0184
+      }
+    }
+  ]
+}
